@@ -1,0 +1,53 @@
+
+    .generate-config {
+        display: block;
+        padding-left: 10px;
+        padding-bottom: 10px;
+    }
+
+    .terminal-title {
+        padding: 5px 10px;
+        justify-content: space-between;
+        margin-bottom: 5px;
+        align-items: center;
+    }
+
+    .terminal-button {
+        align-items: center;
+    }
+
+    .rounded-full {
+        border-radius: 50px;
+    }
+
+    .w-4 {
+        width: 15px;
+    }
+
+    .h-4 {
+        height: 15px;
+    }
+
+    .bg-red {
+        background-color: rgb(252, 76, 76);
+    }
+
+    .bg-green {
+        background-color: rgb(72, 180, 72);
+    }
+
+    .bg-yellow {
+        background-color: rgb(255, 244, 92);
+    }
+
+    .bg-gray-800 {
+        background-color: rgba(0, 0, 0, 0.8);
+    }
+
+    .color-white {
+        color: white;
+    }
+
+    .flex {
+        display: flex;
+    }
