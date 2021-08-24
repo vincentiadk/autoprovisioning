@@ -1,3 +1,4 @@
+<div id="myContent">
 <!-- Content Wrapper. Contains page content -->
 <div class="container-fluid dashboard-content">
     <!-- Main content -->
@@ -170,3 +171,4 @@ function simpan() {
     });
 }
 </script>
+</div>

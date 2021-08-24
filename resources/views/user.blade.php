@@ -9,7 +9,7 @@
                 <div class="page-breadcrumb">
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="#" onclick="goToPage('panel/dashboard')" class="breadcrumb-link">Dashboard</a></li>
+                            <li class="breadcrumb-item"><a href="{{ url('panel/dashboard') }}" class="breadcrumb-link page">Dashboard</a></li>
                             <li class="breadcrumb-item active" aria-current="page">User</li>
                         </ol>
                     </nav>
@@ -25,7 +25,7 @@
                         <div class="card">
                             <div class="card-header">
                                 <button class="btn btn-warning" onclick="refreshDatatable()"> <i class="fas fa-sync"></i> Refresh </button>
-                                <button class="btn btn-primary" onclick="goToPage('panel/user/show/0')"> <i class="fas fa-plus-circle"></i> Tambah User </button>
+                                <a  class="btn btn-primary page" href="{{ url('panel/user/show/0') }}"> <i class="fas fa-plus-circle"></i> Tambah User </button>
                             </div>
                             <div class="card-body">
                                 <div class="alert alert-danger" id="validasi_element" style="display:none;">

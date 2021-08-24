@@ -56,6 +56,16 @@ Route::middleware('auth.login')->group(function () {
             Route::post('delete/{id}', 'DbaProfileController@delete');
         });
 
+        Route::prefix('gpon')->group(function () {   
+            Route::post('/', 'GponController@index');
+            Route::get('datatable', 'GponController@datatable');
+        });
+
+        Route::prefix('metro')->group(function () {   
+            Route::post('/', 'MetroController@index');
+            Route::get('datatable', 'Metroontroller@datatable');
+        });
+        
         Route::prefix('traffic-table')->group(function () {   
             Route::get('show/{id}', 'TrafficTableController@show');
         });
