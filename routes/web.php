@@ -57,15 +57,15 @@ Route::middleware('auth.login')->group(function () {
         });
 
         Route::prefix('gpon')->group(function () {   
-            Route::post('/', 'GponController@index');
-            Route::get('datatable', 'GponController@datatable');
+            Route::get('/', 'GponController@index');
+            Route::post('datatable', 'GponController@datatable');
         });
 
         Route::prefix('metro')->group(function () {   
-            Route::post('/', 'MetroController@index');
-            Route::get('datatable', 'Metroontroller@datatable');
+            Route::get('/', 'MetroController@index');
+            Route::post('datatable', 'Metroontroller@datatable');
         });
-        
+
         Route::prefix('traffic-table')->group(function () {   
             Route::get('show/{id}', 'TrafficTableController@show');
         });

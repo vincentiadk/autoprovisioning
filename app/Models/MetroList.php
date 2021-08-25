@@ -33,4 +33,9 @@ class MetroList extends Model
         'done',
         'done_date'
     ];
+
+    public function configurationStatus()
+    {
+        return $this->belongsTo(ConfigurationStatus::class, 'id', 'metro_list_id');
+    }
 }

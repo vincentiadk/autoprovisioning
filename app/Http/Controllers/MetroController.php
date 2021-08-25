@@ -8,6 +8,7 @@ use App\Models\User;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use DB;
 
 class MetroController extends Controller
 {
@@ -162,4 +163,67 @@ class MetroController extends Controller
     {
         
     }
+
+    public function index()
+    {
+         $data = [
+             'title' => 'Metro',
+             'content' => 'metro',
+         ];
+         if( request()->header('X-PJAX') ) {
+             return view('metro', ['data' => $data]);
+         } else {
+             return view('layouts.index', ['data' => $data]);
+         }
+    }
+ 
+     public function datatable(Request $request)
+     {
+         $start = $request->input('start');
+         $length = $request->input('length');
+         $search = strtolower($request->input('search.value'));
+         $totalData = MetroList::count();
+ 
+         $filtered = MetroList::where(function ($query) use ($search) {
+             $query->where(DB::Raw('LOWER(service_description)'), 'like', "%{$search}%")
+             ->where(DB::Raw('LOWER(access_description)'), 'like', "%{$search}%")
+             ->where(DB::Raw('LOWER(vcid)'), 'like', "%{$search}%")
+             ->where(DB::Raw('LOWER(port_access)'), 'like', "%{$search}%")
+             ->where(DB::Raw('LOWER(vlan_access)'), 'like', "%{$search}%")
+             ->where(DB::Raw('LOWER(node_access)'), 'like', "%{$search}%");
+         });
+ 
+         $totalFiltered = $filtered->count();
+         $queryData = $filtered->offset($start)
+             ->limit($length)
+             ->get();
+         $response['data'] = [];
+         if ($queryData != false) {
+             $nomor = $start + 1;
+             
+             foreach ($queryData as $val) {
+                 $id = $val->configurationStatus ? $val->configurationStatus->id : "0";
+                 $response['data'][] = [
+                     $nomor,
+                     $val->service_description,
+                     $val->access_description,
+                     $val->vcid,
+                     $val->port_access,
+                     $val->vlan_access,
+                     '<a href="'. url('panel/configuration/form?config_id=' . $id . '&aLink=aMetro'). '" class="btn btn-success btn-xs page"> <i class="far fa-edit"></i> Ubah</a>',
+                 ];
+                 $nomor++;
+             }
+         }
+         $response['recordsTotal'] = 0;
+         if ($totalData != false) {
+             $response['recordsTotal'] = $totalData;
+         }
+ 
+         $response['recordsFiltered'] = 0;
+         if ($totalFiltered != false) {
+             $response['recordsFiltered'] = $totalFiltered;
+         }
+         return response()->json($response);
+     }
 }
