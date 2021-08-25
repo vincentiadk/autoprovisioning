@@ -25,7 +25,7 @@
                         <div class="card">
                             <div class="card-header">
                                 <button class="btn btn-warning" onclick="refreshDatatable()"> <i class="fas fa-sync"></i> Refresh </button>
-                                <a  class="btn btn-primary page" href="{{ url('panel/user/show/0') }}"> <i class="fas fa-plus-circle"></i> Tambah User </button>
+                                <a  class="btn btn-primary page" href="{{ url('panel/user/show/0') }}"> <i class="fas fa-plus-circle"></i> Tambah User </a>
                             </div>
                             <div class="card-body">
                                 <div class="alert alert-danger" id="validasi_element" style="display:none;">
