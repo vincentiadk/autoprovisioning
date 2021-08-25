@@ -14,7 +14,8 @@
         "langleyfoxall/laravel-nist-password-rules": "^5.0",
         "laravel/framework": "^8.40",
         "laravel/tinker": "^2.5",
-        "ramsey/uuid": "^4.2"
+        "ramsey/uuid": "^4.2",
+        "spatie/laravel-activitylog": "^3.17"
     },
     "require-dev": {
         "facade/ignition": "^2.5",

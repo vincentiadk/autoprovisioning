@@ -67,7 +67,7 @@
         <!--col-->
         <div class="col-sm-12 col-md-6">
             <div class="generate-config">
-                <div class="bg-grafy-800 text-white p-3 rounded font-mono">
+                <div class="bg-gray-800 text-white p-3 rounded font-mono">
                     <div class="flex terminal-title">
                         <div class="flex terminal-button">
                             <div class="rounded-full w-4 h-4 bg-red mr-2"></div>

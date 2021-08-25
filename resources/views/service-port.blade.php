@@ -11,7 +11,7 @@
 
                 <div class="btn-toolbar float-right" role="toolbar"
                     aria-label="@lang('labels.general.toolbar_btn_groups')">
-                    <a href="{{route('admin.gpon.show', $olt->uuid)}}" class="btn btn-warning ml-1 text-black"
+                    <a href="{{ url('panel/configuration/form?config_id=' . $data['config_id'] . '&aLink=aGpon') }}" class="btn btn-warning ml-1 text-black"
                         data-toggle="tooltip" title="Back"><i class="ti-arrow-left"></i></a>
                 </div>
                 <!--btn-toolbar-->
@@ -50,7 +50,7 @@
 
                     <div class="form-group pull-right">
                         <button type="button" class="btn btn-md btn-info" id="generateConfigBtn"
-                            data-olt="{{$olt}}">Generate
+                            data-olt="{{ $data['oltSite']->id }}">Generate
                             Config</button>
                     </div>
                 </div>

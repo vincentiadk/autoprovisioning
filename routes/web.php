@@ -50,6 +50,11 @@ Route::middleware('auth.login')->group(function () {
             Route::post('datatable', 'ConfigurationController@datatable');
         });
 
+        Route::prefix('logs')->group(function () {   
+            Route::get('/', 'LogController@index');
+            Route::post('datatable', 'LogController@datatable');
+        });
+
         Route::prefix('dba-profile')->group(function () {   
             Route::post('store', 'DbaProfileController@store');
             Route::get('show/{id}', 'DbaProfileController@show');

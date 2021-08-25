@@ -167,6 +167,15 @@ class ConfigurationController extends Controller
                     ];
                     return view('ont-register', ['data' => $data]);
                     break;
+                case 'service':
+                        $data = [
+                            'title' => 'Service Port',
+                            'content' => 'service-port',
+                            'oltSite' => $oltSite,
+                            'config_id' => request('config_id'),
+                        ];
+                        return view('service-port', ['data' => $data]);
+                    break;
                 default:break;
             }
         }
