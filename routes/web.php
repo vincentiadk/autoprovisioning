@@ -39,6 +39,11 @@ Route::middleware('auth.login')->group(function () {
             Route::post('deactive', 'UserController@deactive');
         });
 
+        Route::prefix('role')->group(function () {   
+            Route::get('/', 'RoleController@index');
+            Route::post('datatable', 'RoleController@datatable');
+        });
+        
         Route::prefix('configuration')->group(function () {   
             Route::get('/', 'ConfigurationController@index');
             Route::get('form', 'ConfigurationController@form');
@@ -68,6 +73,8 @@ Route::middleware('auth.login')->group(function () {
 
         Route::prefix('metro')->group(function () {   
             Route::get('/', 'MetroController@index');
+            Route::get('/check-task', 'MetroController@checkTask');
+            Route::get('/confirm-task', 'MetroController@confirmTask');
             Route::post('datatable', 'Metroontroller@datatable');
         });
 

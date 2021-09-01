@@ -37,7 +37,7 @@ class DbaProfileController extends Controller
             ];
         } else {
             try {
-                $metro = DBaProfile::create([
+                $metro = DbaProfile::create([
                     'user_id' => session('id'),
                     'olt_site_id' => $olt_site_id,
                     'profile_id' => request('profile_id'),
@@ -51,7 +51,10 @@ class DbaProfileController extends Controller
                 $response = [
                     'status' => 200,
                     'message' => 'DBA Profile berhasil dibuat',
-                    'object' => $obj,
+                    'object' => [
+                        'config_id' => $config_id,
+                        'olt_site_id' => $olt_site_id
+                    ],
                 ];
                 return redirect('panel/configuration/form?config_id=' . $config_id . '&aLink=aGpon');
             } catch (\Exception $e) {

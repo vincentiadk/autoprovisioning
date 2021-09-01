@@ -31,6 +31,8 @@ class OltSite extends Model
         'vlan_4g',
         'description',
         'updated_by',
+        'mac_add_node',
+        'datek_metro'
     ];
 
     public function user()

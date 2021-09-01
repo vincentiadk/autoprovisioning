@@ -151,9 +151,6 @@ if (activeLink == undefined) {
 }
 
 loadForm(aPage, activeLink);
-$('a').on('click', function() {
-    event.prefentDefault();
-})
 $(document).pjax('.page-gpon', '#formConfig');
 function loadForm(page, id, next = false) {
     $.ajax({

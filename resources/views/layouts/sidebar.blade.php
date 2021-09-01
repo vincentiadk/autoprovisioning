@@ -27,10 +27,13 @@
                         <a class="nav-link page" href="{{ url('panel/metro') }}"><i class="ti-signal"></i>Metro</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link page" href="{{ url('panel/log') }}"><i class="fa fa-fw fa-rocket"></i>Log</a>
+                        <a class="nav-link page" href="{{ url('panel/logs') }}"><i class="fa fa-fw fa-rocket"></i>Log</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link page" href="{{ url('panel/user') }}"><i class="fa fa-users"></i>User Management</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link page" href="{{ url('panel/role') }}"><i class="fa fa-users"></i>Role</a>
                     </li>
                 </ul>
             </div>

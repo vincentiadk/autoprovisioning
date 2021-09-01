@@ -41,23 +41,26 @@
             </div>
 
             <div class="form-group row">
-                <label for="uplink_port" class="col-md-4 form-control-label">
+                <label for="site_id" class="col-md-4 form-control-label">
                     Site ID
                 </label>
                 <div class="col-md-8">
-                    <input type="text" name="site_id" id="site_id" class="form-control"
-                        value="">
+                    <input type="text" name="site_id" id="site_id" class="form-control" placeholder="example: CBN234"
+                        value="{{$data['oltSite']->site_id}}" required>
+                    <small>Format 3 huruf dan 3 angka</small>
                 </div>
                 <!--col-->
+
             </div>
+            <!--form-group-->
 
             <div class="form-group row">
-                <label for="uplink_port" class="col-md-4 form-control-label">
+                <label for="site_name" class="col-md-4 form-control-label">
                     Site Name
                 </label>
                 <div class="col-md-8">
                     <input type="text" name="site_name" id="site_name" class="form-control"
-                        value=" ">
+                        value="{{$data['oltSite']->site_name}}" required>
                 </div>
                 <!--col-->
             </div>
@@ -67,19 +70,11 @@
                 </label>
                 <div class="col-md-8">
                     <input type="text" name="bw" id="bw" class="form-control"
-                        value="{{ $data['order']->bw }} ">
+                        value="{{ $data['oltSite']->bw_order_total }} ">
                 </div>
                 <!--col-->
             </div>
             <!--form-group-->
-        </div>
-        <!--col-->
-    </div>
-    <div class="row mt-4 mb-4">
-        <div class="col-md-12">
-            <h4>Data Teknis GPON</h4>
-        </div>
-        <div class="col-sm-6">
             <input type="hidden" name="olt_site_id" id="olt_site_id"
                 value="{{ $data['oltSite']->id ? $data['oltSite']->id : 0 }}">
             <div class="form-group row">
@@ -111,33 +106,6 @@
                 <!--col-->
             </div>
             <!--form-group-->
-
-            <div class="form-group row">
-                <label for="site_id" class="col-md-4 form-control-label">
-                    Site ID
-                </label>
-                <div class="col-md-8">
-                    <input type="text" name="site_id" id="site_id" class="form-control" placeholder="example: CBN234"
-                        value="{{$data['oltSite']->site_id}}" required>
-                    <small>Format 3 huruf dan 3 angka</small>
-                </div>
-                <!--col-->
-
-            </div>
-            <!--form-group-->
-
-            <div class="form-group row">
-                <label for="site_name" class="col-md-4 form-control-label">
-                    Site Name
-                </label>
-                <div class="col-md-8">
-                    <input type="text" name="site_name" id="site_name" class="form-control"
-                        value="{{$data['oltSite']->site_name}}" required>
-                </div>
-                <!--col-->
-            </div>
-            <!--form-group-->
-
             <div class="form-group row">
                 <label for="bw_order_oam" class="col-md-4 form-control-label">
                     BW Order OAM

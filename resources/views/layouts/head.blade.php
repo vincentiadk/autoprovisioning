@@ -104,11 +104,11 @@ function simpan() {
                     title: response.message
                 });
                 if (typeof response.object !== 'undefined') {
-                    if (response.object.length > 0) {
+                    //if (response.object.length > 0) {
                         $.each(response.object, function(key, value) {
                             $('#' + key).val(value);
                         });
-                    }
+                    //}
                 }
             } else if (response.status == 422) {
                 $.each(response.error, function(i, val) {

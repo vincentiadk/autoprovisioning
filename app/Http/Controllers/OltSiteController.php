@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\ConfigurationStatus;
 use App\Models\OltSite;
-use App\Models\User;
 use App\Models\Order;
+use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 class OltSiteController extends Controller
@@ -15,14 +15,15 @@ class OltSiteController extends Controller
     {
         $user = User::findOrFail(session('id'));
         $config_id = request('config_id');
-
+        $olt_site_id = request('olt_site_id');
+        
         $validator = Validator::make(request()->all(), [
             'nama_costumer' => 'required',
             'order_number' => 'required',
             'hostname' => 'required',
             'uplink_port' => 'required',
             'site_name' => 'required',
-            'site_id' => 'required|unique:olt_sites|regex:/[a-zA-Z]{3}[0-9]{3}/u|',
+            'site_id' => $olt_site_id != 0 ? 'required|unique:olt_sites,site_id,' . $olt_site_id . '|regex:/[a-zA-Z]{3}[0-9]{3}/u|'  :  'required|unique:olt_sites,site_id|regex:/[a-zA-Z]{3}[0-9]{3}/u|',
             'bw_order_oam' => 'numeric',
             'bw_order_2g' => 'required_with:vlan_2g|numeric',
             'bw_order_3g' => 'required_with:vlan_3g|numeric',
@@ -44,10 +45,9 @@ class OltSiteController extends Controller
                 'error' => $validator->errors(),
             ];
         } else {
-            $olt_site_id = request('olt_site_id');
             $order_id = request('order_id');
             $obj[] = [
-                'config_id' => $config_id
+                'config_id' => $config_id,
             ];
             try {
                 $bwOrder2g = $request->has('bw_order_2g') ? $request->bw_order_2g : 0;
@@ -57,13 +57,13 @@ class OltSiteController extends Controller
                 $vlan3g = $request->has('vlan_3g') ? $request->vlan_3g : null;
                 $vlan4g = $request->has('vlan_4g') ? $request->vlan_4g : null;
                 $bwOrderTotal = $request->bw_order_oam + $bwOrder2g + $bwOrder3g + $bwOrder4g;
-                if(request('order_id') == 0) {
+                if (request('order_id') == 0) {
                     $order_id = Order::create([
                         'nama_costumer' => request('nama_costumer'),
                         'order_number' => request('order_number'),
                     ])->id;
                 }
-                if($olt_site_id == 0) {
+                if ($olt_site_id == 0) {
                     $olt = OltSite::create([
                         'user_id' => $user->id,
                         'hostname' => $request->hostname,
@@ -113,12 +113,12 @@ class OltSiteController extends Controller
                     $config_id = ConfigurationStatus::create([
                         'olt_site_id' => $olt_site_id,
                         'created_by' => session('id'),
-                        'order_id'  => $order_id,
+                        'order_id' => $order_id,
                     ])->id;
                 } else {
                     ConfigurationStatus::find($config_id)->update([
                         'olt_site_id' => $olt_site_id,
-                        'order_id'  => $order_id,
+                        'order_id' => $order_id,
                     ]);
                 }
                 //$this->storeLog($user, $olt, 'Create OLT Site');
@@ -129,9 +129,9 @@ class OltSiteController extends Controller
                     'message' => $e->getMessage(),
                 ];
 
-            } 
+            }
         }
         return response()->json($response);
     }
-    
+
 }

@@ -17,6 +17,7 @@ class UserTableSeeder extends Seeder
             0 => 
             array (
                 'id' => 1,
+                'uuid'  => '878a7876-38ce-400a-8429-7e1ddd369e40',
                 'name' => 'Super Admin',
                 'email' => 'admin@mail.com',
                 'username' => 'superadmin',

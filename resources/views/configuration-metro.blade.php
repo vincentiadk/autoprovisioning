@@ -4,10 +4,13 @@
             <h4 class="card-title mb-0">
                 {{ $data['title'] }} 
             </h4>
-            Task ID : {{ $data['metro']->taskk_id }}
+            Task ID : <input type="text" value="{{ $data['metro']->task_id }}" id="task_id" readonly="true" style="width:60%;font-size:14px">
+            
         </div>
         <!--col-->
         <div class="col-sm-7">
+            <a href="#" class="btn btn-info" onclick="checkTask({{ $data['metro']->task_id }})">Check Task</a>
+            <a href="#" class="btn btn-success" onclick="confirmTask({{ $data['metro']->task_id }})">Confirm Task</a>
         </div>
         <!--col-->
     </div>
@@ -117,4 +120,29 @@
             <input type="hidden" id="url" value="{{ url('panel/metro/store') }}">
         </div>
     </div>
+    <script>
+        function checkTask(task_id){
+            $.ajax({
+                url: "{{ url('panel/metro/check-task') }}" + '?task_id=' + task_id,
+                contentType: 'application/json',
+                dataType: 'json',
+                success: function(response) {
+                    console.log(response);
+                    alert(response);
+                }
+            });
+        }
+        function confirmTask(task_id){
+            if(confirm("Apakah Anda yakin?")) {
+                $.ajax({
+                    url: "{{ url('panel/metro/confirm-task') }}" + '?task_id=' + task_id,
+                    contentType: 'application/json',
+                    dataType: 'json',
+                    success: function(response) {
+                        alert(response);
+                    }
+                });
+            }
+        }
+    </script>
 </div>
