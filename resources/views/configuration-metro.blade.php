@@ -16,6 +16,13 @@
     color: green;
     border: 1px solid green;
 }
+.loading {    
+    background-color: #ffffff;
+    background-image: url("{{ url('storage/spin2.gif') }}");
+    background-size: 25px 25px;
+    background-position:right center;
+    background-repeat: no-repeat;
+}
 </style>
 <div class="card-body">
     <div class="row">
@@ -55,7 +62,7 @@
                 <label for="vcid" class="form-control-label">
                     VCID
                 </label>
-                <input type="number" name="vcid" id="vcid" class="form-control" value="{{ $data['metro']->vcid }}"
+                <input type="tel" name="vcid" id="vcid" class="form-control" value="{{ $data['metro']->vcid }}"
                     onkeypress="allowNumbersOnly(event)" onchange="checkAll()" required>
                 <span id="vcid_lbl"></span>
             </div>
@@ -101,7 +108,7 @@
                         <input type="hidden" name="node_backhaul_1" id="node_backhaul_1"
                             value="{{ $data['metro']->node_backhaul_1 }}">
                         <input type="tel" name="node_backhaul_1_name" id="node_backhaul_1_name" class="form-control"
-                            value="{{ $data['metro']->node_backhaul_1_name }}" onchange="checkAll()">
+                            value="{{ $data['metro']->node_backhaul1_name }}" onchange="checkAll()">
                         <span id="node_backhaul_1_lbl"></span>
                     </div>
                     <div class="col-4">
@@ -134,7 +141,7 @@
                         <input type="hidden" name="node_backhaul_2" id="node_backhaul_2"
                             value="{{ $data['metro']->node_backhaul_2 }}">
                         <input type="tel" name="node_backhaul_2_name" id="node_backhaul_2_name" class="form-control"
-                            value="{{ $data['metro']->node_backhaul_2_name }}" onchange="checkAll()">
+                            value="{{ $data['metro']->node_backhaul2_name }}" onchange="checkAll()">
                         <span id="node_backhaul_2_lbl"></span>
                     </div>
                     <div class="col-4">
@@ -264,6 +271,8 @@
         $('#' + input_id).addClass('not-available');
         $('#' + input_id).removeClass('found');
         validation++;
+        $('#btn_simpan').hide();
+        $('#' +input_id).removeClass('loading');
     }
 
     function setAvailable(span_id, input_id, text) {
@@ -277,6 +286,7 @@
         } else {
             $('#btn_simpan').show();
         }
+        $('#' +input_id).removeClass('loading');
     }
 
     function checkVcid(id, lbl) {
@@ -310,6 +320,7 @@
 
         // Capitalize all character ever typed.
         input.val(val.toUpperCase());
+        input.addClass('loading');
     })
 
     function checkInterface(port, vlan, lbl_port, lbl_vlan, node) {
