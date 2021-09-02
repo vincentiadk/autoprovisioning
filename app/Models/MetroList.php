@@ -31,7 +31,10 @@ class MetroList extends Model
         'endTime',
         'startTime',
         'done',
-        'done_date'
+        'done_date',
+        'node_access_name',
+        'node_backhaul1_name',
+        'node_backhaul2_name'
     ];
 
     public function configurationStatus()

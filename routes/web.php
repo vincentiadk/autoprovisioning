@@ -43,7 +43,7 @@ Route::middleware('auth.login')->group(function () {
             Route::get('/', 'RoleController@index');
             Route::post('datatable', 'RoleController@datatable');
         });
-        
+
         Route::prefix('configuration')->group(function () {   
             Route::get('/', 'ConfigurationController@index');
             Route::get('form', 'ConfigurationController@form');
@@ -73,7 +73,11 @@ Route::middleware('auth.login')->group(function () {
 
         Route::prefix('metro')->group(function () {   
             Route::get('/', 'MetroController@index');
+            Route::get('/check-node', 'MetroController@checkNode');
+            Route::get('/check-interface', 'MetroController@checkInterface');
             Route::get('/check-task', 'MetroController@checkTask');
+            Route::get('/check-vcid', 'MetroController@checkVcid');
+            Route::get('/get-circuits', 'MetroController@getCircuits');
             Route::get('/confirm-task', 'MetroController@confirmTask');
             Route::post('datatable', 'Metroontroller@datatable');
         });
