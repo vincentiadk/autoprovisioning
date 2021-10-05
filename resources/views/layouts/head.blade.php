@@ -48,6 +48,7 @@ $('a').on('click', function() {
     event.prefentDefault();
 })
 $(document).pjax('.page', '#myContent');
+
 function getSearchParams(k) {
     var p = {};
     location.search.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(s, k, v) {
@@ -105,9 +106,9 @@ function simpan() {
                 });
                 if (typeof response.object !== 'undefined') {
                     //if (response.object.length > 0) {
-                        $.each(response.object, function(key, value) {
-                            $('#' + key).val(value);
-                        });
+                    $.each(response.object, function(key, value) {
+                        $('#' + key).val(value);
+                    });
                     //}
                 }
             } else if (response.status == 422) {
@@ -195,8 +196,7 @@ function notificationLogin() {
 function select2AutoSuggest(selector, endpoint, sourcepoint = '') {
     $(selector).select2({
         placeholder: '-- Pilih --',
-        minimumInputLength: 1,
-        allowClear: true,
+        minimumInputLength: 3,
         cache: true,
         theme: 'bootstrap4',
         ajax: {
@@ -259,16 +259,16 @@ function select2AutoSuggestMultiple(selector, endpoint) {
     });
 }
 
-function select2AutoSuggestTags(selector, endpoint) {
+function select2AutoSuggestTags(selector, endpoint, node) {
     $(selector).select2({
         placeholder: '-- Pilih --',
-        minimumInputLength: 3,
+        minimumInputLength: 2,
         allowClear: true,
         tags: true,
         cache: true,
         ajax: {
-            url: '{{ url("panel/select2") }}' + '/' + endpoint,
-            type: 'POST',
+            url: '{{ url("panel/select2") }}' + '/' + endpoint + '?node=' + $(node).val(),
+            type: 'GET',
             dataType: 'JSON',
             delay: 250,
             headers: {
@@ -276,7 +276,49 @@ function select2AutoSuggestTags(selector, endpoint) {
             },
             data: function(params) {
                 return {
-                    search: params.term
+                    node: node,
+                    search: params.term,
+                };
+            },
+            processResults: function(data) {
+                return {
+                    results: data.items
+                }
+            }
+        },
+        createTag: function(params) {
+            var term = $.trim(params.term);
+            if (term === '') {
+                return null;
+            } else {
+                return {
+                    id: term,
+                    text: term,
+                    newTag: true
+                }
+            }
+        }
+    });
+}
+
+function select2Qos(selector, node) {
+    $(selector).select2({
+        placeholder: '-- Pilih --',
+        minimumInputLength: 4,
+        tags: true,
+        cache: true,
+        ajax: {
+            url: '{{ url("panel/select2/qos") }}',
+            type: 'GET',
+            dataType: 'JSON',
+            delay: 250,
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            data: function(params) {
+                return {
+                    node: $(node).val(),
+                    search: params.term,
                 };
             },
             processResults: function(data) {

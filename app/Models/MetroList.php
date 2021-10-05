@@ -33,8 +33,14 @@ class MetroList extends Model
         'done',
         'done_date',
         'node_access_name',
-        'node_backhaul1_name',
-        'node_backhaul2_name'
+        'node_backhaul_1_name',
+        'node_backhaul_2_name',
+        'qos_access',
+        'qos_backhaul_1',
+        'qos_backhaul_2',
+        'scheduler_access',
+        'scheduler_backhaul_1',
+        'scheduler_backhaul_2',
     ];
 
     public function configurationStatus()

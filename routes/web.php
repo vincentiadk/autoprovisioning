@@ -27,6 +27,9 @@ Route::middleware('auth.login')->group(function () {
         Route::prefix('select2')->group(function(){
             Route::post('user', 'Select2Controller@getUser');
             Route::post('olt', 'Select2Controller@getOlt');
+            Route::post('node', 'Select2Controller@getNode');
+            Route::get('qos', 'Select2Controller@getQos');
+            Route::post('scheduler', 'Select2Controller@getScheduler');
         });
 
         Route::prefix('user')->group(function () {   

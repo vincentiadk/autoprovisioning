@@ -12,6 +12,15 @@ use Illuminate\Support\Facades\Validator;
 
 class MetroController extends Controller
 {
+    private $url;
+    private $client;
+
+    public function __construct()
+    {
+        $this->url = config('metro.url');
+        $this->client = new Client(["base_uri" => $this->url, "http_errors" => false, 'verify' => false]);
+    }
+
     public function store()
     {
         $user = User::findOrFail(session('id'));
@@ -23,16 +32,22 @@ class MetroController extends Controller
             'vcid' => 'required|numeric|min:10',
             'node_backhaul_1' => 'required|ip',
             'node_backhaul_2' => 'required|ip',
-            'port_backhaul_1' => 'required|regex:/\d+\/\d+\/\d+/',
-            'port_backhaul_2' => 'required|regex:/\d+\/\d+\/\d+/',
+            'port_backhaul_1' => 'required',
+            'port_backhaul_2' => 'required',
             'vlan_backhaul_1' => 'required|numeric',
             'vlan_backhaul_2' => 'required|numeric',
             'node_access' => 'required|ip',
             'vlan_access' => 'required|numeric',
-            'port_access' => 'required|regex:/\d+\/\d+\/\d+/',
+            'port_access' => 'required',
             'node_access_name' => 'required',
             'node_backhaul_1_name' => 'required',
             'node_backhaul_2_name' => 'required',
+            /*'qos_access' => 'required',
+            'qos_backhaul_1' => 'required',
+            'qos_backhaul_2' => 'required',
+            'scheduller_access' => 'required',
+            'scheduller_backhaul_1' => 'required',
+            'scheduller_backhaul_2' => 'required',*/
         ], [
             "service_description.required" => "Service Description wajib diisi!",
             "access_description.required" => "Access Description wajib diisi!",
@@ -42,9 +57,6 @@ class MetroController extends Controller
             "node_backhaul_1.ip" => "IP Node back haul 1 tidak valid",
             "node_backhaul_2.ip" => "IP Node back haul 2 tidak valid",
             "node_access.ip" => "IP Node access tidak valid,",
-            "port_backhaul_1.regex" => "Port back haul 1 tidak valid, contoh penulisan : 1/1/1",
-            "port_backhaul_2.regex" => "Port back haul 2 tidak valid, contoh penulisan : 1/1/1",
-            "port_access.regex" => "Port Akses tidak valid, contoh penulisan : 1/2/4",
         ]);
         if ($validator->fails()) {
             $response = [
@@ -58,6 +70,7 @@ class MetroController extends Controller
             ];
             try {
 
+                \Log::info(request()->all());
                 if (intval($metro_list_id) == 0) {
                     $metro = MetroList::create([
                         'service_description' => request('service_description'),
@@ -73,8 +86,14 @@ class MetroController extends Controller
                         'vlan_access' => request('vlan_access'),
                         'port_access' => request('port_access'),
                         'node_access_name' => request('node_access_name'),
-                        'node_backhaul1_name' => request('node_backhaul_1_name'),
-                        'node_backhaul2_name' => request('node_backhaul_2_name'),
+                        'node_backhaul_1_name' => request('node_backhaul_1_name'),
+                        'node_backhaul_2_name' => request('node_backhaul_2_name'),
+                        'qos_access' => request('qos_access'),
+                        'qos_backhaul_1' => request('qos_backhaul_1'),
+                        'qos_backhaul_2' => request('qos_backhaul_2'),
+                        'scheduler_access' => request('scheduler_access'),
+                        'scheduler_backhaul_1' => request('scheduler_backhaul_1'),
+                        'scheduler_backhaul_2' => request('scheduler_backhaul_2')
                     ]);
                     $result = $this->createTask($metro);
                     $obj = [
@@ -106,6 +125,12 @@ class MetroController extends Controller
                         'node_access_name' => request('node_access_name'),
                         'node_backhaul_1_name' => request('node_backhaul_1_name'),
                         'node_backhaul_2_name' => request('node_backhaul_2_name'),
+                        'qos_access' => request('qos_access'),
+                        'qos_backhaul_1' => request('qos_backhaul_1'),
+                        'qos_backhaul_2' => request('qos_backhaul_2'),
+                        'scheduler_access' => request('scheduler_access'),
+                        'scheduler_backhaul_1' => request('scheduler_backhaul_1'),
+                        'scheduler_backhaul_2' => request('scheduler_backhaul_2')
                     ]);
                     $task_id = $metro->task_id;
                     if ($metro->task_id == '') {
@@ -134,7 +159,6 @@ class MetroController extends Controller
                 }
                 //$this->storeLog($user, $olt, 'Create OLT Site');
             } catch (\Exception $e) {
-                //DB::rollback();
                 $response = [
                     'status' => 500,
                     'message' => $e->getMessage(),
@@ -146,9 +170,6 @@ class MetroController extends Controller
     }
     public function createTask(MetroList $metro)
     {
-        $url = config('metro.url');
-        $client = new Client(["base_uri" => $url, "http_errors" => false, 'verify' => false]);
-
         $options = [
             'name' => 'tselmetro',
             'data' => [
@@ -164,8 +185,15 @@ class MetroController extends Controller
                 'nodeAccess' => $metro->node_access,
                 'vlanAccess' => $metro->vlan_access,
                 'portAccess' => $metro->port_access,
+                'schedulerAccess' => $metro->scheduler_access,
+                'qosAccess' => $metro->qos_access,
+                'schedulerBackhaul1' => $metro->scheduler_backhaul_1,
+                'qosBackhaul1' => $metro->qos_backhaul_1,
+                'schedulerBackhaul2' => $metro->scheduler_backhaul_2,
+                'qosBackhaul2' => $metro->qos_backhaul_2
             ],
         ];
+        \Log::info($options);
         try {
             $response = $client->post("/network/v1/tasks", ['json' => $options]);
             $result = json_decode($response->getBody()->getContents(), true);
@@ -179,35 +207,29 @@ class MetroController extends Controller
             ]);
             return $result;
         } catch (\Exception $e) {
-            //DB::rollback();
             return false;
         }
     }
 
     public function checkTask()
     {
-        $url = config('metro.url');
-        $client = new Client(["base_uri" => $url, "http_errors" => false, 'verify' => false]);
         try {
-            $response = $client->get("/network/v1/tasks/" . request('task_id'));
+            $response = $this->client->get("/network/v1/tasks/" . request('task_id'));
             $result = json_decode($response->getBody()->getContents(), true);
             return $result;
         } catch (\Exception $e) {
-            //DB::rollback();
             return false;
         }
     }
 
     public function checkNode()
     {
-        $url = config('metro.url');
-        $client = new Client(["base_uri" => $url, "http_errors" => false, 'verify' => false]);
         try {
             $name = 'null';
             if (request('name') != '') {
                 $name = request('name');
             }
-            $response = $client->get("/network/v1/nodes/" . $name);
+            $response = $this->client->get("/network/v1/nodes/" . $name);
             if ($response->getStatusCode() !== 200) {
                 return [
                     'status' => $response->getStatusCode(),
@@ -225,13 +247,11 @@ class MetroController extends Controller
 
     public function checkInterface()
     {
-        $url = config('metro.url');
-        $client = new Client(["base_uri" => $url, "http_errors" => false, 'verify' => false]);
         $node = $this->checkNode();
 
         if ($node['status'] == 200) {
             try {
-                $response = $client->get("/network/v1/nodes/" . request('name') . "/interfaces/" . urlencode(request('port') . ':' . request('vlan')));
+                $response = $this->client->get("/network/v1/nodes/" . request('name') . "/interfaces/" . urlencode(request('port') . ':' . request('vlan')));
                 if ($response->getStatusCode() !== 200) {
                     return [
                         'status' => $response->getStatusCode(),
@@ -243,7 +263,6 @@ class MetroController extends Controller
                     return $result;
                 }
             } catch (\Exception $e) {
-                //DB::rollback();
                 return false;
             }
         } else {
@@ -255,10 +274,8 @@ class MetroController extends Controller
 
     public function checkVcid()
     {
-        $url = config('metro.url');
-        $client = new Client(["base_uri" => $url, "http_errors" => false, 'verify' => false]);
         try {
-            $response = $client->get("/network/v1/nodes/" . request('name') . "/circuits/" . request('vcid'));
+            $response = $this->client->get("/network/v1/nodes/" . request('name') . "/circuits/" . request('vcid'));
             if ($response->getStatusCode() !== 200) {
                 return [
                     'status' => $response->getStatusCode(),
@@ -269,17 +286,14 @@ class MetroController extends Controller
                 return $result;
             }
         } catch (\Exception $e) {
-            //DB::rollback();
             return false;
         }
     }
 
     public function getCircuits()
     {
-        $url = config('metro.url');
-        $client = new Client(["base_uri" => $url, "http_errors" => false, 'verify' => false]);
         try {
-            $response = $client->get("/network/v1/nodes/" . request('name') . "/circuits");
+            $response = $this->client->get("/network/v1/nodes/" . request('name') . "/circuits");
             if ($response->getStatusCode() !== 200) {
                 return response()->json([
                     'status' => $response->getStatusCode(),
@@ -290,30 +304,21 @@ class MetroController extends Controller
                 return $result;
             }
         } catch (\Exception $e) {
-            //DB::rollback();
             return false;
         }
     }
 
     public function confirmTask()
     {
-        $url = config('metro.url');
-        $client = new Client(["base_uri" => $url, "http_errors" => false, 'verify' => false]);
         try {
-            $response = $client->post("/network/v1/tasks/" . request('task_id') . "/confirm");
+            $response = $this->client->post("/network/v1/tasks/" . request('task_id') . "/confirm");
             $result = json_decode($response->getBody()->getContents(), true);
             return $result;
         } catch (\Exception $e) {
-            //DB::rollback();
             return false;
         }
     }
 
-    public function checkConfiguration()
-    {
-        $url = config('metro.url');
-        $client = new Client(["base_uri" => $url, "http_errors" => false, 'verify' => false]);
-    }
     public function index()
     {
         $data = [
