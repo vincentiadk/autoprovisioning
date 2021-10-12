@@ -132,22 +132,17 @@
                         <span id="qos_access_lbl" class="not-available"></span>
                     </div>
                     <div class="form-group">
-                        <label for="node_access_name_scheduler" class="form-control-label">
+                        <label for="node_access_scheduler" class="form-control-label">
                             Scheduler access
                         </label>
-                        <select class="select2 form-control" id="node_access_name_scheduler" name="scheduler_access"
-                            onchange="checkAll()">
+                        <select class="select2 form-control" id="node_access_scheduler" name="scheduler_access" onchange="checkScheduler(id)">
                             @if($data['metro']->scheduler_access != '')
                             <option value="{{$data['metro']->scheduler_access}}" selected>
                                 {{$data['metro']->scheduler_access}}
                             </option>
-                            @else
-                            <option value="TSEL" selected>
-                                TSEL
-                            </option>
                             @endif
                         </select>
-                        <span id="node_access_name_scheduler_lbl" class="not-available"></span>
+                        <span id="node_access_scheduler_lbl" class="not-available"></span>
                     </div>
                 </div>
                 <div class="col-md-4" style="    background: #bff3c8bb;    padding: 10px;">
@@ -200,15 +195,10 @@
                         <label for="node_backhaul_1_scheduler" class="form-control-label">
                             Scheduler Backhaul 1
                         </label>
-                        <select class="select2 form-control" id="node_backhaul_1_scheduler" name="scheduler_backhaul_1"
-                            onchange="checkAll()">
+                        <select class="select2 form-control" id="node_backhaul_1_scheduler" name="scheduler_backhaul_1" onchange="checkScheduler(id)">
                             @if($data['metro']->scheduler_backhaul_1 != '')
                             <option value="{{$data['metro']->node_backhaul_1_scheduler}}" selected>
                                 {{$data['metro']->scheduler_backhaul_1}}
-                            </option>
-                            @else
-                            <option value="TSEL" selected>
-                                TSEL
                             </option>
                             @endif
                         </select>
@@ -257,10 +247,6 @@
                             @if($data['metro']->qos_backhaul_2 != '')
                             <option value="{{$data['metro']->qos_backhaul_2}}" selected>
                                 {{$data['metro']->qos_backhaul_2}}</option>
-                            @else
-                            <option value="TSEL" selected>
-                                TSEL
-                            </option>
                             @endif
                         </select>
                         <span id="qos_backhaul_2_lbl" class="not-available"></span>
@@ -269,19 +255,14 @@
                         <label for="node_backhaul_2_scheduler" class="form-control-label">
                             Scheduler Backhaul 2
                         </label>
-                        <select class="select2 form-control" id="node_backhaul_2_scheduler" name="scheduler_backhaul_2"
-                            onchange="checkAll()">
+                        <select class="select2 form-control" id="node_backhaul_2_scheduler" name="scheduler_backhaul_2" onchange="checkScheduler(id)">
                             @if($data['metro']->scheduler_backhaul_2 != '')
-                            <option value="{{$data['metro']->scheduler_backhaul_2}}" selected>
+                            <option value="{{$data['metro']->scheduler_backhaul_2}}" selected >
                                 {{$data['metro']->scheduler_backhaul_2}}
-                            </option>
-                            @else
-                            <option value="TSEL" selected>
-                                TSEL
                             </option>
                             @endif
                         </select>
-                        <span id="node_backhaul_1_scheduler_lbl" class="not-available"></span>
+                        <span id="node_backhaul_2_scheduler_lbl" class="not-available"></span>
                     </div>
                 </div>
             </div>
@@ -297,19 +278,26 @@
     </div>
     <script>
     checkTaskId();
-    var validation, NodeVar = false;
+    var validation, NodeAccess, NodeBackhaul_1, NodeBackhaul_2;
     select2AutoSuggest('#node_access_name', 'node');
     select2AutoSuggest('#node_backhaul_1_name', 'node');
     select2AutoSuggest('#node_backhaul_2_name', 'node');
     select2Qos('#qos_access', '#node_access_name');
     select2Qos('#qos_backhaul_1', '#node_backhaul_1_name');
     select2Qos('#qos_backhaul_2', '#node_backhaul_2_name');
-
+    
     function pickNode(id, node_id) {
         $('#' + node_id).val($('#' + id + ' option:selected').text());
         checkAll();
     }
-
+    function checkScheduler(id) {
+        if($('#' + id).val() != '') {
+            setAvailable(id+'_lbl', id, "Scheduler is set");
+            validation--;
+        } else {
+            setUnavailable(id+'_lbl', id, "Please choose a scheduler");
+        }
+    }
     function checkTaskId() {
         if ($('#task_id').text().trim() == '') {
             checkAll();
@@ -353,34 +341,39 @@
             e.preventDefault();
         }
     }
-    function loadScheduler(id, node){
+    function loadScheduler(node, id){
+        var div = '<div class="loading-select" id="div_' + id + '"></div>';
+        $('#' + id).prev().append(div);
         $.ajax({
             url: "{{ url('panel/select2/scheduler') }}" + '?node='+ node,
             contentType: 'application/json',
             dataType: 'json',
             success: function(response) {
                 $('#' + id + ' option').remove();
-                //$.each(response.items) {
-
-                //}
-                console.log(response);
-                $('#' + id).append(response.items);
+                var option = "";
+                for(var i = 0; i < response.length; i++) {
+                    option += "<option value='"+ response[i].name + "'>" + response[i].name + "</option>";
+                }
+                $('#' + id).append(option);
+                checkScheduler(id);
+                $('#div_' + id).remove();
             }
         });
     }
-
     function checkAll() {
         validation = 0;
         checkDescription('service_description', 'service_description_lbl');
         checkDescription('access_description', 'access_description_lbl');
+        
+        checkNode('node_access_name', 'node_access_lbl', 'node_access');
+        checkNode('node_backhaul_1_name', 'node_backhaul_1_lbl', 'node_backhaul_1');
+        checkNode('node_backhaul_2_name', 'node_backhaul_2_lbl', 'node_backhaul_2');
         checkInterface('port_access', 'vlan_access', 'port_access_lbl', 'vlan_access_lbl', 'node_access_name');
         checkInterface('port_backhaul_1', 'vlan_backhaul_1', 'port_backhaul_1_lbl', 'vlan_backhaul_1_lbl',
             'node_backhaul_1_name');
         checkInterface('port_backhaul_2', 'vlan_backhaul_2', 'port_backhaul_2_lbl', 'vlan_backhaul_2_lbl',
             'node_backhaul_2_name');
-        checkNode('node_access_name', 'node_access_lbl', 'node_access');
-        checkNode('node_backhaul_2_name', 'node_backhaul_2_lbl', 'node_backhaul_2');
-        checkNode('node_backhaul_1_name', 'node_backhaul_1_lbl', 'node_backhaul_1');
+        
         checkVcid('vcid', 'vcid_lbl');
         checkQos('qos_access', 'qos_access_lbl');
         checkQos('qos_backhaul_1', 'qos_backhaul_1_lbl');
@@ -415,11 +408,10 @@
                     $('#' + textbox).val('');
                 }
                 $('#div_' + id).remove();
-                loadScheduler(id + 'scheduler',  $('#' + id).val());
+                loadScheduler($('#' + id).val(), id.replace('name', 'scheduler'));
             }
         });
     }
-
     function setUnavailable(span_id, input_id, text) {
         $('#' + span_id).addClass('not-available');
         $('#' + span_id).removeClass('found');
@@ -427,8 +419,9 @@
         $('#' + input_id).addClass('not-available');
         $('#' + input_id).removeClass('found');
         validation++;
-        $('#btn_simpan').hide();
+        //$('#btn_simpan').hide();
         $('#' + input_id).removeClass('loading');
+        console.log(validation);
     }
 
     function setAvailable(span_id, input_id, text) {
@@ -437,11 +430,11 @@
         $('#' + span_id).text(text);
         $('#' + input_id).addClass('found');
         $('#' + input_id).removeClass('not-available');
-        if (validation > 0) {
+        /*if (validation > 0) {
             $('#btn_simpan').hide();
         } else {
             $('#btn_simpan').show();
-        }
+        }*/
         $('#' + input_id).removeClass('loading');
     }
 
@@ -495,6 +488,7 @@
     })
 
     function checkInterface(port, vlan, lbl_port, lbl_vlan, node) {
+        
         if ($('#' + node).val() == '') {
             setUnavailable(lbl_port, port, "Please entry a node");
             setUnavailable(lbl_vlan, vlan, "Please entry a node");
@@ -519,7 +513,17 @@
                 success: function(response) {
                     if (response.status !== 200) {
                         setAvailable(lbl_port, port, "Port available");
-                        setAvailable(lbl_vlan, vlan, "VLAN available");
+                        if($('#node_backhaul_2_name').val() == $('#node_backhaul_1_name').val()) {
+                            if($('#vlan_backhaul_1').val() != $('#vlan_backhaul_2').val()) {
+                                setUnavailable('vlan_backhaul_1_lbl', 'vlan_backhaul_1', 'VLAN backhaul 1 must be same as VLAN backhaul 2');
+                                setUnavailable('vlan_backhaul_2_lbl', 'vlan_backhaul_2', 'VLAN backhaul 2 must be same as VLAN backhaul 1');
+                                setAvailable('vlan_access_lbl', 'vlan_access', 'VLAN available');
+                            } else {
+                                setAvailable('vlan_backhaul_1_lbl', 'vlan_backhaul_1', 'VLAN backhaul 1 available');
+                                setAvailable('vlan_backhaul_2_lbl', 'vlan_backhaul_2', 'VLAN backhaul 2 available');
+                                setAvailable(lbl_vlan, vlan, response.message);
+                            }
+                        }
                     } else {
                         setUnavailable(lbl_port, port, response.message);
                         setUnavailable(lbl_vlan, vlan, response.message);

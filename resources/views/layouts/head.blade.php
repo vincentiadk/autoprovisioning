@@ -196,7 +196,7 @@ function notificationLogin() {
 function select2AutoSuggest(selector, endpoint, sourcepoint = '') {
     $(selector).select2({
         placeholder: '-- Pilih --',
-        minimumInputLength: 3,
+        minimumInputLength: 1,
         cache: true,
         theme: 'bootstrap4',
         ajax: {
@@ -304,9 +304,9 @@ function select2AutoSuggestTags(selector, endpoint, node) {
 function select2Qos(selector, node) {
     $(selector).select2({
         placeholder: '-- Pilih --',
-        minimumInputLength: 4,
-        tags: true,
+        minimumInputLength: 1,
         cache: true,
+        theme: 'bootstrap4',
         ajax: {
             url: '{{ url("panel/select2/qos") }}',
             type: 'GET',
@@ -316,26 +316,15 @@ function select2Qos(selector, node) {
                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
             },
             data: function(params) {
-                return {
-                    node: $(node).val(),
+                var query = {
                     search: params.term,
-                };
+                    node: $(node).val(),
+                }
+                return query;
             },
             processResults: function(data) {
                 return {
                     results: data.items
-                }
-            }
-        },
-        createTag: function(params) {
-            var term = $.trim(params.term);
-            if (term === '') {
-                return null;
-            } else {
-                return {
-                    id: term,
-                    text: term,
-                    newTag: true
                 }
             }
         }

@@ -53,7 +53,7 @@ class Select2Controller extends Controller
     public function getNode()
     {
         $search = strtolower(request('search'));
-        $api = $this->client->get("/network/v1/nodes?group=" . session('regional') . "&name=" . urlencode('like:' . $search) .'&type=M');
+        $api = $this->client->get("/network/v1/nodes?group=" . session('regional') . "&name=" . urlencode('like:' . $search) .'&type=M&manufacture=ALCATEL-LUCENT');
         $result = json_decode($api->getBody()->getContents(), true);
         $response[] = [
             'id' => '',
@@ -73,7 +73,7 @@ class Select2Controller extends Controller
     public function getQos()
     {
         $search = strtolower(request('search'));
-        $api = $this->client->get("/network/v1/nodes/" . urlencode(request('node')) . "/qoses?name=like:" . $search. "&direction=i");
+        $api = $this->client->get("/network/v1/nodes/" . urlencode(request('node')) . "/qoses?name=like:" . $search. "&direction=I");
         $result = json_decode($api->getBody()->getContents(), true);
         $response[] = [
             'id' => '',
@@ -81,9 +81,9 @@ class Select2Controller extends Controller
         ];
         if( isset($result['result']) ) {
             foreach ($result['result'] as $d) {
-                $api_e = $this->client->get("/network/v1/nodes/" . urlencode(request('node')) . "/qoses?name=like:" . $d['name']. '&direction=e');
+                $api_e = $this->client->get("/network/v1/nodes/" . urlencode(request('node')) . "/qoses?name=like:" . $d['name']. '&direction=E');
                 $egress = json_decode($api_e->getBody()->getContents(), true);
-                if($egress->getStatusCode() == 200) {
+                if($api_e->getStatusCode() == 200) {
                     $response[] = [
                         'id' => $d['name'],
                         'text' => $d['name'],
@@ -100,16 +100,18 @@ class Select2Controller extends Controller
         $result = json_decode($api->getBody()->getContents(), true);
         $response[] = [
             'id' => '',
-            'text' => 'Semua Scheduller',
+            'name' => 'Semua Scheduller',
         ];
-        if( isset($result['result']) ) {
-            foreach ($result['result'] as $d) {
+        if( isset($result['result']) ) {  
+            foreach($result['result'] as $d) {
                 $response[] = [
-                    'id' => $d['name'],
-                    'text' => $d['name'],
+                    'id' => $d['id'],
+                    'name' => $d['name']
                 ];
-            }
+            }          
+            
         }
-        return response()->json(['items' => $response]);
+        
+        return $response;
     }
 }

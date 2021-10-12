@@ -42,12 +42,12 @@ class MetroController extends Controller
             'node_access_name' => 'required',
             'node_backhaul_1_name' => 'required',
             'node_backhaul_2_name' => 'required',
-            /*'qos_access' => 'required',
+            'qos_access' => 'required',
             'qos_backhaul_1' => 'required',
             'qos_backhaul_2' => 'required',
-            'scheduller_access' => 'required',
-            'scheduller_backhaul_1' => 'required',
-            'scheduller_backhaul_2' => 'required',*/
+            'scheduler_access' => 'required',
+            'scheduler_backhaul_1' => 'required',
+            'scheduler_backhaul_2' => 'required',
         ], [
             "service_description.required" => "Service Description wajib diisi!",
             "access_description.required" => "Access Description wajib diisi!",
@@ -96,6 +96,7 @@ class MetroController extends Controller
                         'scheduler_backhaul_2' => request('scheduler_backhaul_2')
                     ]);
                     $result = $this->createTask($metro);
+                    Log::info($metro);
                     $obj = [
                         'metro_list_id' => $metro->id,
                         'task_id' => $result['task_id'],
@@ -171,31 +172,30 @@ class MetroController extends Controller
     public function createTask(MetroList $metro)
     {
         $options = [
-            'name' => 'tselmetro',
-            'data' => [
-                'serviceDescription' => $metro->service_description,
-                'accessDescription' => $metro->access_description,
-                'vcid' => $metro->vcid,
-                'nodeBackhaul1' => $metro->node_backhaul_1,
-                'nodeBackhaul2' => $metro->node_backhaul_2,
-                'portBackhaul1' => $metro->port_backhaul_1,
-                'portBackhaul2' => $metro->port_backhaul_2,
-                'vlanBackhaul1' => $metro->vlan_backhaul_1,
-                'vlanBackhaul2' => $metro->vlan_backhaul_2,
-                'nodeAccess' => $metro->node_access,
-                'vlanAccess' => $metro->vlan_access,
-                'portAccess' => $metro->port_access,
-                'schedulerAccess' => $metro->scheduler_access,
-                'qosAccess' => $metro->qos_access,
-                'schedulerBackhaul1' => $metro->scheduler_backhaul_1,
-                'qosBackhaul1' => $metro->qos_backhaul_1,
-                'schedulerBackhaul2' => $metro->scheduler_backhaul_2,
-                'qosBackhaul2' => $metro->qos_backhaul_2
+            "name" => "tselmetro",
+            "data" => [
+                "serviceDescription" => $metro->service_description,
+                "accessDescription" => $metro->access_description,
+                "vcid" => $metro->vcid,
+                "nodeBackhaul1" => $metro->node_backhaul_1,
+                "nodeBackhaul2" => $metro->node_backhaul_2,
+                "portBackhaul1" => $metro->port_backhaul_1,
+                "portBackhaul2" => $metro->port_backhaul_2,
+                "vlanBackhaul1" => $metro->vlan_backhaul_1,
+                "vlanBackhaul2" => $metro->vlan_backhaul_2,
+                "nodeAccess" => $metro->node_access,
+                "vlanAccess" => $metro->vlan_access,
+                "portAccess" => $metro->port_access,
+                "schedulerAccess" => $metro->scheduler_access,
+                "qosAccess" => $metro->qos_access,
+                "schedulerBackhaul1" => $metro->scheduler_backhaul_1,
+                "qosBackhaul1" => $metro->qos_backhaul_1,
+                "schedulerBackhaul2" => $metro->scheduler_backhaul_2,
+                "qosBackhaul2" => $metro->qos_backhaul_2
             ],
         ];
-        \Log::info($options);
         try {
-            $response = $client->post("/network/v1/tasks", ['json' => $options]);
+            $response = $client->post("/network/v1/tasks", ["json" => $options]);
             $result = json_decode($response->getBody()->getContents(), true);
             $metro->update([
                 'task_id' => $result['task_id'],
