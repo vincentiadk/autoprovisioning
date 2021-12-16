@@ -36,11 +36,11 @@
                                         <thead class="text-center">
                                             <tr>
                                                 <th>No</th>
-                                                <th>Service Description</th>
-                                                <th>Access Description</th>
-                                                <th>VCID</th>
-                                                <th>Port Access</th>
-                                                <th>VLAN Access</th>
+                                                <th>Name</th>
+                                                <th>IP</th>
+                                                <th>Manufacture</th>
+                                                <th>Area</th>
+                                                <th>Group</th>
                                                 <th>Aksi</th>
                                             </tr>
                                         </thead>

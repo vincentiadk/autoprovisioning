@@ -30,6 +30,7 @@ Route::middleware('auth.login')->group(function () {
             Route::post('node', 'Select2Controller@getNode');
             Route::get('qos', 'Select2Controller@getQos');
             Route::get('scheduler', 'Select2Controller@getScheduler');
+            Route::get('port-huawei', 'Select2Controller@getPortHuawei');
         });
 
         Route::prefix('user')->group(function () {   
@@ -80,9 +81,11 @@ Route::middleware('auth.login')->group(function () {
             Route::get('/check-interface', 'MetroController@checkInterface');
             Route::get('/check-task', 'MetroController@checkTask');
             Route::get('/check-vcid', 'MetroController@checkVcid');
+            Route::get('/check-qos', 'MetroController@checkQos');
+            Route::get('/status-task', 'MetroController@statusTask');
             Route::get('/get-circuits', 'MetroController@getCircuits');
             Route::get('/confirm-task', 'MetroController@confirmTask');
-            Route::post('datatable', 'Metroontroller@datatable');
+            Route::post('datatable', 'MetroController@datatable');
         });
 
         Route::prefix('traffic-table')->group(function () {   

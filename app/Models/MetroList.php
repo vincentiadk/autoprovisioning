@@ -20,12 +20,14 @@ class MetroList extends Model
         'port_access',
         'node_access',
         'vlan_access',
+        'vsiname',
         'node_backhaul_1',
         'node_backhaul_2',
         'port_backhaul_1',
         'port_backhaul_2',
         'vlan_backhaul_1',
         'vlan_backhaul_2',
+        'vlan',
         'task_id',
         'createTime',
         'endTime',
@@ -41,6 +43,7 @@ class MetroList extends Model
         'scheduler_access',
         'scheduler_backhaul_1',
         'scheduler_backhaul_2',
+        'status'
     ];
 
     public function configurationStatus()

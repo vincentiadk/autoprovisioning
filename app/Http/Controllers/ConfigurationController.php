@@ -28,7 +28,7 @@ class ConfigurationController extends Controller
     public function form()
     {
         if (request('config_id') == 0 || !(null != (request('config_id')))) {
-            if (ConfigurationStatus::where('created_by', session('id'))->count() == 2) {
+           /* if (ConfigurationStatus::where('created_by', session('id'))->count() == 2) {
                 echo '<script>alert("Anda masih memiliki 2 konfigurasi yang belum selesai. Harap selesaikan dahulu")</script>';
                 $data = [
                     'title' => 'Inbox',
@@ -39,7 +39,7 @@ class ConfigurationController extends Controller
                 } else {
                     return view('layouts.index', ['data' => $data]);
                 }
-            } else {
+            } else {*/
                 $data = [
                     'title' => "Buat Konfigurasi Baru",
                     'content' => 'configuration-form',
@@ -51,7 +51,7 @@ class ConfigurationController extends Controller
 
                     return view('layouts.index', ['data' => $data]);
                 }
-            }
+           // }
 
         } else {
             $config_id = request('config_id');
@@ -253,7 +253,7 @@ class ConfigurationController extends Controller
             $nomor = $start + 1;
             foreach ($queryData as $val) {
                 $aksi = "";
-                $metro = $val->metroList ? (!$val->done ? "On Progress" : "Done") : "Not Yet";
+                $metro = $val->metroList ? $val->metroList->status : "Not Yet";
                 $metro .= '<a href=' . url('panel/configuration/form?config_id=' . $val->id . '&aLink=aMetro') . ' class="btn btn-success btn-xs"> <i class="far fa-edit"></i> Konfig </a>';
 
                 $gpon = $val->oltSite ? (!$val->done ? "On Progress" : "Done") : "Not Yet";
@@ -265,9 +265,9 @@ class ConfigurationController extends Controller
                 $response['data'][] = [
                     $nomor,
                     $val->order ? $val->order->order_number : "unknown",
-                    $val->order ? $val->order->nama_costumer : "unknown",
-                    $val->oltSite ? $val->oltSite->site_name : "http://",
-                    $val->oltSite ? $val->oltSite->bw_order_total . " Mb" : "0 Mb",
+                    //$val->order ? $val->order->nama_costumer : "unknown",
+                    //$val->oltSite ? $val->oltSite->site_name : "http://",
+                    //$val->oltSite ? $val->oltSite->bw_order_total . " Mb" : "0 Mb",
                     $metro,
                     $gpon,
                     $ont,

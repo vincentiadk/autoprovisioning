@@ -38,9 +38,9 @@
                                             <tr>
                                                 <th>No</th>
                                                 <th>Nomor Order</th>
-                                                <th>Nama</th>
+                                                <!--<th>Nama</th>
                                                 <th>Site Name</th>
-                                                <th>BW</th>
+                                                <th>BW</th>-->
                                                 <th>Metro</th>
                                                 <th>GPON</th>
                                                 <th>ONT</th>
@@ -94,53 +94,7 @@ var oTable = $('#datatable_serverside').DataTable({
             'X-CSRF-TOKEN': '{{ csrf_token() }}'
         },
         type: 'POST',
-    },
-    columns: [{
-            searchable: false,
-            orderable: false,
-            className: 'align-middle text-center'
-        },
-        {
-            searchable: false,
-            orderable: false,
-            className: 'align-middle text-center'
-        },
-        {
-            searchable: false,
-            orderable: false,
-            className: 'align-middle text-center'
-        },
-        {
-            searchable: false,
-            orderable: false,
-            className: 'align-middle text-center'
-        },
-        {
-            searchable: false,
-            orderable: false,
-            className: 'align-middle text-center'
-        },
-        {
-            searchable: false,
-            orderable: false,
-            className: 'align-middle text-center'
-        },
-        {
-            searchable: false,
-            orderable: false,
-            className: 'align-middle text-center'
-        },
-        {
-            searchable: false,
-            orderable: false,
-            className: 'align-middle text-center'
-        },
-        {
-            searchable: false,
-            orderable: false,
-            className: 'align-middle text-center'
-        },
-    ]
+    }
 });
 
 function refreshDatatable(){

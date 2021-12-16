@@ -53,13 +53,13 @@ class Select2Controller extends Controller
     public function getNode()
     {
         $search = strtolower(request('search'));
-        $api = $this->client->get("/network/v1/nodes?group=" . session('regional') . "&name=" . urlencode('like:' . $search) .'&type=M&manufacture=ALCATEL-LUCENT');
+        $api = $this->client->get("/network/v1/nodes?group=" . session('regional') . "&name=" . urlencode('like:' . $search) . '&type=M');
         $result = json_decode($api->getBody()->getContents(), true);
         $response[] = [
             'id' => '',
             'text' => 'Semua Nodes',
         ];
-        if( isset($result['result']) ) {
+        if (isset($result['result'])) {
             foreach ($result['result'] as $d) {
                 $response[] = [
                     'id' => $d['name'],
@@ -73,24 +73,43 @@ class Select2Controller extends Controller
     public function getQos()
     {
         $search = strtolower(request('search'));
-        $api = $this->client->get("/network/v1/nodes/" . urlencode(request('node')) . "/qoses?name=like:" . $search. "&direction=I");
-        $result = json_decode($api->getBody()->getContents(), true);
         $response[] = [
             'id' => '',
             'text' => 'Semua QOS',
         ];
-        if( isset($result['result']) ) {
-            foreach ($result['result'] as $d) {
-                $api_e = $this->client->get("/network/v1/nodes/" . urlencode(request('node')) . "/qoses?name=like:" . $d['name']. '&direction=E');
-                $egress = json_decode($api_e->getBody()->getContents(), true);
-                if($api_e->getStatusCode() == 200) {
-                    $response[] = [
-                        'id' => $d['name'],
-                        'text' => $d['name'],
-                    ];
+        switch (request('manufacture')) {
+            case 'ALCATEL-LUCENT':
+                $api = $this->client->get("/network/v1/nodes/" . urlencode(request('node')) . "/qoses?name=like:" . $search . "&direction=I");
+                $result = json_decode($api->getBody()->getContents(), true);
+                if (isset($result['result'])) {
+                    foreach ($result['result'] as $d) {
+                        $api_e = $this->client->get("/network/v1/nodes/" . urlencode(request('node')) . "/qoses?name=like:" . $d['name'] . '&direction=E');
+                        $egress = json_decode($api_e->getBody()->getContents(), true);
+                        if ($api_e->getStatusCode() == 200) {
+                            $response[] = [
+                                'id' => $d['name'],
+                                'text' => $d['name'],
+                            ];
+                        }
+                    }
                 }
-            }
+                break;
+            case 'HUAWEI':
+                $api = $this->client->get("/network/v1/nodes/" . urlencode(request('node')) . "/qoses?name=like:" . $search);
+                $result = json_decode($api->getBody()->getContents(), true);
+                if (isset($result['result'])) {
+                    foreach ($result['result'] as $d) {
+
+                        $response[] = [
+                            'id' => $d['name'],
+                            'text' => $d['name'],
+                        ];
+                    }
+                }
+                break;
+            default:break;
         }
+
         return response()->json(['items' => $response]);
     }
 
@@ -100,18 +119,43 @@ class Select2Controller extends Controller
         $result = json_decode($api->getBody()->getContents(), true);
         $response[] = [
             'id' => '',
-            'name' => 'Semua Scheduller',
+            'name' => '',
         ];
-        if( isset($result['result']) ) {  
-            foreach($result['result'] as $d) {
+        if (isset($result['result'])) {
+            foreach ($result['result'] as $d) {
                 $response[] = [
-                    'id' => $d['id'],
-                    'name' => $d['name']
+                    'id' => $d['name'],
+                    'name' => $d['name'],
                 ];
-            }          
-            
+            }
+
         }
-        
+
         return $response;
+    }
+
+    public function getPortHuawei()
+    {
+        $api = $this->client->get("/network/v1/nodes/" . request('node') . "/interfaces?type=physical&name=like:" . request('search'));
+        $result = json_decode($api->getBody()->getContents(), true);
+        $response[] = [
+            'id' => '',
+            'text' => '',
+        ];
+        if (isset($result['result'])) {
+            foreach ($result['result'] as $d) {
+                $response[] = [
+                    'id' => $d['name'],
+                    'text' => $d['name'],
+                ];
+            }
+        }
+        /*array_push($response,
+        [
+        'id' => $d['name'],
+        'text' => $d['name'],
+        ]
+        );*/
+        return response()->json(['items' => $response]);
     }
 }
