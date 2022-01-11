@@ -1,3 +1,10 @@
+<style>
+    .btn-fixed{
+        position: absolute;
+        top: 10px;
+        left: 15%;
+    }
+    </style>
 <div id="myContent">
 <!-- Content Wrapper. Contains page content -->
 <div class="container-fluid dashboard-content">
@@ -37,7 +44,7 @@
                         <input type="hidden" value="{{ $id }}" name="id" id="id_user">
                         <input type="hidden" value="{{ $data['type'] }}" name="type">
                         <div class="alert alert-danger" id="validasi_element" style="display:none;">
-                            <ul id="validasi_content"></ul>
+                            <!--<ul id="validasi_content"></ul>-->
                         </div>
                         <div class="form-group">
                             <label>Nama</label>
@@ -101,12 +108,38 @@
                         </div>
                     </div>
                 </div>
+                @if(session('id') == $data['user']->id)
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">TACACS IP</h3> <button type="submit" class="btn btn-primary btn-fixed" onclick="editTacac()">Edit</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>USER</label>
+                            <input type="text" id="nwuser" class="form-control" value="{{ $data['nwuser_decrypted'] }}" name="nwuser" @if($data['nwuser_decrypted']) != '') readonly="true" @endif>
+                        </div>
+                        <div class="form-group">
+                            <label>Password</label>
+                            <input type="password" id="nwpass" class="form-control" value="{{ $data['nwpass_decrypted'] }}" name="nwpass" @if($data['nwpass_decrypted']) != '') readonly="true" @endif>
+                        </div>
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary btn-block col-4"
+                                onclick="simpan()">Simpan</button>
+                        </div>
+                    </div>
+                </div>
+                @endif
             </form>
             <!-- /.card -->
         </div>
     </div>
 </div>
 <script>
+function editTacac(){
+    event.preventDefault();
+    $('#nwuser').removeAttr('readonly');
+    $('#nwpass').removeAttr('readonly');
+}
 function simpan() {
     event.preventDefault();
     var id_ = $('#id_user').val();
@@ -153,6 +186,7 @@ function simpan() {
                 $.each(response.error, function(i, val) {
                     $('#validasi_content').append('<li>' + val + '</li>');
                 })
+                    $('#modal_validation').modal('show');
             } else {
                 Toast.fire({
                     icon: 'warning',

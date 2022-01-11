@@ -43,7 +43,11 @@ class MetroList extends Model
         'scheduler_access',
         'scheduler_backhaul_1',
         'scheduler_backhaul_2',
-        'status'
+        'status',
+        'description_access',
+        'description_backhaul_1',
+        'description_backhaul_2',
+        'manufacture'
     ];
 
     public function configurationStatus()

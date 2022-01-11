@@ -11,7 +11,7 @@
 
 .optional {
     font-size: 80%;
-    color: #17c0dc;
+    color: #5969ff;
 }
 
 .form-control.not-available {
@@ -20,8 +20,8 @@
 }
 
 .form-control.optional {
-    color: #17c0dc;
-    border: 1px solid #17c0dc;
+    color: #5969ff;
+    border: 1px solid #5969ff;
 }
 
 .form-control.found {
@@ -43,7 +43,7 @@
     width: 150px;
     position: absolute;
     right: 0px;
-    padding : 15px;
+    padding: 15px;
     color: white;
 
 }
@@ -86,8 +86,9 @@
     <div class="row mt-4 mb-4">
         <input type="hidden" name="metro_list_id" id="metro_list_id"
             value="{{ $data['metro']->id ? $data['metro']->id : '' }}">
+        <input id="node_manufacture" name="node_manufacture" type="hidden">
         <div class="col-sm-10">
-            <div class="form-group">
+            <!--<div class="form-group">
                 <label for="service_description" class="form-control-label">
                     Service Description
                 </label>
@@ -102,7 +103,7 @@
                 <input type="text" name="access_description" id="access_description" class="form-control"
                     value="{{ $data['metro']->access_description }}" required>
                 <span id="access_description_lbl" class="not-available"></span>
-            </div>
+            </div>-->
             <div class="form-group row">
                 <div class="col-md-6">
                     <label for="vcid" class="form-control-label" id="lblvcid">
@@ -120,15 +121,24 @@
                     </label>
                     <input type="text" name="vsiname" id="vsiname" class="form-control"
                         value="{{ $data['metro']->vsiname }}" required>
-                    <span id="vsiname_access_lbl" class="not-available"></span><br />
-                    <span id="vsiname_backhaul_1_lbl" class="not-available"></span><br />
-                    <span id="vsiname_backhaul_2_lbl" class="not-available"></span>
+                    <span id="vsiname_access_lbl"></span><br />
+                    <span id="vsiname_backhaul_1_lbl"></span><br />
+                    <span id="vsiname_backhaul_2_lbl"></span>
                 </div>
             </div>
 
             <div class="row">
                 <div class="col-md-4" style="background: #cdf5fb;    padding: 10px;" id="vcid_node_access">
                     <div class="form-group">
+                        <label for="service_description" class="form-control-label">
+                            Description Access
+                        </label>
+                        <input type="text" name="description_access" id="description_access" class="form-control"
+                            value="{{ $data['metro']->description_access }}" required>
+                        <span id="description_access_lbl" class="not-available"></span>
+                    </div>
+                    <div class="form-group">
+
                         <label for="vlan" class="form-control-label">
                             Node Access
                         </label>
@@ -145,15 +155,15 @@
                         <input id="node_access_manufacture" name="node_access_manufacture" type="hidden">
                     </div>
                     <div class="form-group">
-                        <label for="port_access" class="form-control-label">
-                            Port Akses
+                        <label for="port_access" class="form-control-label port" id="port_access_lbl_top">
+                            Port access
                         </label>
                         <input type="hidden" value="{{ $data['metro']->port_access }}" id="hidden_port_access"
                             name="port_access">
-                        <input type="tel" id="input_port_access" class="form-control port"
-                            value="{{ $data['metro']->port_access }}">
+                        <input type="tel" id="input_port_access" class="form-control"
+                            value="{{ $data['metro']->port_access }}" onchange="checkAccess()">
 
-                        <select class="select2 form-control select-port" id="select_port_access">
+                        <select class="select2 form-control" id="select_port_access" onchange="checkAccess()">
                             @if($data['metro']->port_access != '')
                             <option value="{{$data['metro']->port_access}}" selected>
                                 {{$data['metro']->port_access}}
@@ -164,10 +174,11 @@
                     </div>
                     <div class="form-group">
                         <label for="vlan_access" class="form-control-label">
-                            VLAN
+                            VLAN access
                         </label>
-                        <input type="tel" name="vlan_access" id="vlan_access" class="form-control vlan"
-                            value="{{ $data['metro']->vlan_access }}" onkeypress="allowNumbersOnly(event)" required>
+                        <input type="tel" name="vlan_access" id="vlan_access" class="form-control"
+                            value="{{ $data['metro']->vlan_access }}" onkeypress="allowNumbersOnly(event)" required
+                            onchange="checkAccess()">
                         <span id="vlan_access_lbl" class="not-available"></span>
                     </div>
                     <div class="form-group row">
@@ -203,7 +214,7 @@
                                 </option>
                                 @endif
                             </select>
-                            <span id="qos_access_lbl" class="not-available"></span>
+                            <span id="qos_access_lbl"></span>
                         </div>
                         <div class="form-group">
                             <label for="node_access_scheduler" class="form-control-label">
@@ -217,11 +228,19 @@
                                 </option>
                                 @endif
                             </select>
-                            <span id="node_access_scheduler_lbl" class="not-available"></span>
+                            <span id="node_access_scheduler_lbl"></span>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-4" style="    background: #bff3c8bb;    padding: 10px;" id="vcid_node_backhaul_1">
+                    <div class="form-group">
+                        <label for="service_description" class="form-control-label">
+                            Description Backhaul 1
+                        </label>
+                        <input type="text" name="description_backhaul_1" id="description_backhaul_1"
+                            class="form-control" value="{{ $data['metro']->description_backhaul_1 }}" required>
+                        <span id="description_backhaul_1_lbl" class="not-available"></span>
+                    </div>
                     <div class="form-group">
                         <label for="node_backhaul_1" class="form-control-label">
                             Node Backhaul 1
@@ -239,8 +258,8 @@
                         <input id="node_backhaul_1_manufacture" name="node_backhaul_1_manufacture" type="hidden">
                     </div>
                     <div class="form-group">
-                        <label for="port_backhaul_1" class="form-control-label">
-                            Port Backhaul 1
+                        <label for="port_backhaul_1" class="form-control-label" id="port_backhaul_1_lbl_top">
+                            Port backhaul 1
                         </label>
                         <input type="hidden" value="{{ $data['metro']->port_backhaul_1 }}" id="hidden_port_backhaul_1"
                             name="port_backhaul_1">
@@ -253,15 +272,15 @@
                             </option>
                             @endif
                         </select>
-                        <span id="port_backhaul_1_lbl" class="not-available"></span>
+                        <span id="port_backhaul_1_lbl"></span>
                     </div>
                     <div class="form-group">
                         <label for="vlan_backhaul_1" class="form-control-label">
-                            VLAN
+                            VLAN backhaul 1
                         </label>
                         <input type="tel" name="vlan_backhaul_1" id="vlan_backhaul_1" class="form-control vlan"
                             value="{{ $data['metro']->vlan_backhaul_1 }}" onkeypress="allowNumbersOnly(event)" required>
-                        <span id="vlan_backhaul_1_lbl" class="not-available"></span>
+                        <span id="vlan_backhaul_1_lbl"></span>
                     </div>
                     <div class="form-group row">
                         <div class="col-md-6">
@@ -298,7 +317,7 @@
                                     {{$data['metro']->qos_backhaul_1}}</option>
                                 @endif
                             </select>
-                            <span id="qos_backhaul_1_lbl" class="not-available"></span>
+                            <span id="qos_backhaul_1_lbl"></span>
                         </div>
                         <div class="form-group">
                             <label for="node_backhaul_1_scheduler" class="form-control-label">
@@ -312,11 +331,19 @@
                                 </option>
                                 @endif
                             </select>
-                            <span id="node_backhaul_1_scheduler_lbl" class="not-available"></span>
+                            <span id="node_backhaul_1_scheduler_lbl"></span>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-4" style="background: #e3ebfd;    padding: 10px;" id="vcid_node_backhaul_2">
+                    <div class="form-group">
+                        <label for="service_description" class="form-control-label">
+                            Description Backhaul 2
+                        </label>
+                        <input type="text" name="description_backhaul_2" id="description_backhaul_2"
+                            class="form-control" value="{{ $data['metro']->description_backhaul_2 }}" required>
+                        <span id="description_backhaul_2_lbl" class="not-available"></span>
+                    </div>
                     <div class="form-group">
                         <label for="node_backhaul_2" class="form-control-label">
                             Node Backhaul 2
@@ -333,8 +360,8 @@
                         <input id="node_backhaul_2_manufacture" name="node_backhaul_2_manufacture" type="hidden">
                     </div>
                     <div class="form-group ">
-                        <label for="port_backhaul_2" class="form-control-label">
-                            Port Backhaul 2
+                        <label for="port_backhaul_2" class="form-control-label" id="port_backhaul_2_lbl_top">
+                            Port backhaul 2
                         </label>
                         <input type="hidden" name="port_backhaul_2" id="hidden_port_backhaul_2"
                             value="{{ $data['metro']->port_backhaul_2 }}">
@@ -347,15 +374,15 @@
                             </option>
                             @endif
                         </select>
-                        <span id="port_backhaul_2_lbl" class="not-available"></span>
+                        <span id="port_backhaul_2_lbl"></span>
                     </div>
                     <div class="form-group">
                         <label for="vlan_backhaul_2" class="form-control-label">
-                            VLAN
+                            VLAN backhaul 2
                         </label>
                         <input type="tel" name="vlan_backhaul_2" id="vlan_backhaul_2" class="form-control vlan"
                             value="{{ $data['metro']->vlan_backhaul_2 }}" onkeypress="allowNumbersOnly(event)" required>
-                        <span id="vlan_backhaul_2_lbl" class="not-available"></span>
+                        <span id="vlan_backhaul_2_lbl"></span>
                     </div>
                     <div class="form-group row">
                         <div class="col-md-6">
@@ -392,7 +419,7 @@
                                     {{$data['metro']->qos_backhaul_2}}</option>
                                 @endif
                             </select>
-                            <span id="qos_backhaul_2_lbl" class="not-available"></span>
+                            <span id="qos_backhaul_2_lbl"></span>
                         </div>
                         <div class="form-group">
                             <label for="node_backhaul_2_scheduler" class="form-control-label">
@@ -406,7 +433,7 @@
                                 </option>
                                 @endif
                             </select>
-                            <span id="node_backhaul_2_scheduler_lbl" class="not-available"></span>
+                            <span id="node_backhaul_2_scheduler_lbl"></span>
                         </div>
                     </div>
                 </div>
@@ -417,8 +444,8 @@
             <a href="#" class="btn btn-info" onclick="checkTask('{{ $data['metro']->task_id }}')" style="margin:10px"
                 id="btn_check_task">Check Task</a>
             @if($data['metro']->task_id != "")
-            <a href="#" class="btn btn-success" onclick="checkTaskId('{{ $data['metro']->task_id }}')" style="margin:10px"
-                id="btn_check_status">Check Status</a>
+            <a href="#" class="btn btn-success" onclick="checkTaskId('{{ $data['metro']->task_id }}')"
+                style="margin:10px" id="btn_check_status">Check Status</a>
             @endif
         </div>
     </div>
@@ -460,42 +487,33 @@
             $('#div_' + name).hide();
         }
     })
-    $('#service_description').on('change', function() {
-        checkDescription('service_description', 'service_description_lbl');
+    $('#description_access').on('change', function() {
+        checkDescription('description_access', 'description_access_lbl');
     })
-    $('#access_description').on('change', function() {
-        checkDescription('access_description', 'access_description_lbl');
+    $('#description_backhaul_1').on('change', function() {
+        checkDescription('description_backhaul_1', 'description_backhaul_1_lbl');
+    })
+    $('#description_backhaul_2').on('change', function() {
+        checkDescription('description_backhaul_2', 'description_backhaul_2_lbl');
     })
     $('#vcid').on('change', function() {
-        if($('#node_access_name').val() != "") {
-            checkVcid('vcid', 'vcid_access_lbl', 'vcid');
-            //checkInterface('port_access', 'vlan_access', 'port_access_lbl', 'vlan_access_lbl', 'node_access_name');
-        }
-        if($('#node_backhaul_1_name').val() != "") {
+        checkAccess();
+        if ($('#node_backhaul_1_name').val() != "") {
             checkVcid('vcid', 'vcid_backhaul_1_lbl', 'vcid');
-            //checkInterface('port_backhaul_1', 'vlan_backhaul_1', 'port_backhaul_1_lbl', 'vlan_backhaul_1_lbl',
-            //'node_backhaul_1_name');
         }
-        if($('#node_backhaul_2_name').val() != "") {
+        if ($('#node_backhaul_2_name').val() != "") {
             checkVcid('vcid', 'vcid_backhaul_2_lbl', 'vcid');
-            //checkInterface('port_backhaul_2', 'vlan_backhaul_2', 'port_backhaul_2_lbl', 'vlan_backhaul_2_lbl',
-            //'node_backhaul_2_name');
         }
     })
     $('#vsiname').on('change', function() {
-        if($('node_access').val() != "") {
+        if ($('node_access').val() != "") {
             checkVcid('vcid', 'vcid_access_lbl', 'vsiname');
-            //checkInterface('port_access', 'vlan_access', 'port_access_lbl', 'vlan_access_lbl', 'node_access_name');
         }
-        if($('node_backhaul_1').val() != "") {
+        if ($('node_backhaul_1').val() != "") {
             checkVcid('vcid', 'vcid_backhaul_1_lbl', 'vsiname');
-            //checkInterface('port_backhaul_1', 'vlan_backhaul_1', 'port_backhaul_1_lbl', 'vlan_backhaul_1_lbl',
-            //'node_backhaul_1_name');
         }
-        if($('node_backhaul_2').val() != "") {
+        if ($('node_backhaul_2').val() != "") {
             checkVcid('vcid', 'vcid_backhaul_2_lbl', 'vsiname');
-            //checkInterface('port_backhaul_2', 'vlan_backhaul_2', 'port_backhaul_2_lbl', 'vlan_backhaul_2_lbl',
-            //'node_backhaul_2_name');
         }
     })
     $('.node').on('change', function() {
@@ -509,17 +527,16 @@
         var vlan = "vlan_" + name;
         var portlbl = port + "_lbl";
         var vlanlbl = vlan + "_lbl";
-        checkVcid('vcid', 'vcid_' + name + '_lbl', null);
-        //checkInterface(port, vlan, portlbl, vlanlbl, node_id);
+        if (name != "access") {
+            checkVcid('vcid', 'vcid_' + name + '_lbl', null);
+        }
         checkQosBefore("qos_" + name, "qos_" + name + "_lbl", node_id);
     })
 
     $('.vlan').on('change', function() {
         var name = $(this).attr('id').replace('vlan_', '');
-        var vlan = $(this).attr('id');
-        var portlbl = 'port_' + name + "_lbl";
-        var vlanlbl = $(this).attr('id') + "_lbl";
-        checkInterface('port_' + name, vlan, portlbl, vlanlbl, "node_" + name + "_name");
+        console.log(name);
+        checkInterface(name);
     })
     $('.qos').on('change', function() {
         var name = $(this).attr('id');
@@ -529,20 +546,14 @@
 
     $('.port').on('change', function() {
         var name = $(this).attr('id').replace('port_', '').replace('input_', '');
-        var vlan = "vlan_" + name;
-        var portlbl = 'port_' + name + "_lbl";
-        var vlanlbl = vlan + '_' + name + "_lbl";
         $('input[name=port_' + name + ']').val($(this).val());
-        checkInterface('port_' + name, vlan, portlbl, vlanlbl, "node_" + name + "_name");
+        checkPort(name);
     })
 
     $('.select-port').on('change', function() {
         var name = $(this).attr('id').replace('port_', '').replace('select_', '');
         $('input[name=port_' + name + ']').val($(this).val());
-        var vlan = "vlan_" + name;
-        var portlbl = 'port_' + name + "_lbl";
-        var vlanlbl = vlan + "_lbl";
-        checkInterface('port_' + name, vlan, portlbl, vlanlbl, "node_" + name + "_name");
+        checkInterface(name);
     })
     </script>
 </div>

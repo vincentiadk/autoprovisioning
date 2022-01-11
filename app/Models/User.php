@@ -40,6 +40,8 @@ class User extends Authenticatable
         'ldap',
         'nik',
         'remember_token',
+        'nwuser',
+        'nwpass'
     ];
 
     /**
@@ -185,6 +187,11 @@ class User extends Authenticatable
     public function passwordHistories()
     {
         return $this->hasMany(PasswordHistory::class);
+    }
+
+    public function token()
+    {
+        return $this->hasMany(Token::class);
     }
 
 }

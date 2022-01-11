@@ -80,59 +80,111 @@ var simpanResponse;
 
 function simpan() {
     event.preventDefault();
+
+    if ($('#description_access').val() == "") {
+        setUnavailable("description_access_lbl", "description_access", "Please entry description access");
+    }
+    if ($('#description_backhaul_1').val() == "") {
+        setUnavailable("description_backhaul_1_lbl", "description_backhaul_1", "Please entry description backhaul 2");
+    }
+    if ($('#description_backhaul_2').val() == "") {
+        setUnavailable("description_backhaul_2_lbl", "description_backhaul_2", "Please entry description backhaul 2");
+    }
+    //if ($('#access_description').val() == "") {
+    //    setUnavailable("access_description_lbl", "access_description", "Please entry access description");
+    //}
+    if ($('#vcid').val() == "") {
+        setUnavailable("vcid_access_lbl", "vcid", "Please entry VCID/VSI ID");
+        setAvailable("vcid_backhaul_1_lbl", "vcid", "");
+        setAvailable("vcid_backhaul_2_lbl", "vcid", "");
+    }
+    if ($('#vsiname').val() == "" && $('#node_manufacture').val() == "HUAWEI") {
+        setUnavailable("vsiname_access_lbl", "vsiname", "Please entry VSI Name");
+        setAvailable("vsiname_backhaul_1_lbl", "vsiname", "");
+        setAvailable("vsiname_backhaul_2_lbl", "vsiname", "");
+    }
+    if ($('#node_access_name').val() == null) {
+        setUnavailable("node_access_lbl", "node_access_name", "Please select node access");
+    }
+    if ($('#node_manufacture').val() == "HUAWEI" && $('#select_port_access').val() == null) {
+        setUnavailable("port_access_lbl", "select_port_access", "Please select port access");
+    }
+    if ($('#node_manufacture').val() == "ALCATEL-LUCENT" && $('#input_port_access').val() == null) {
+        setUnavailable("port_access_lbl", "input_port_access", "Please entry port access");
+    }
+    if ($('#node_backhaul_1_name').val() == null) {
+        setUnavailable("node_backhaul_1_lbl", "node_backhaul_1_name", "Please select node backhaul 1");
+    }
+    if ($('#node_backhaul_2_name').val() == null) {
+        setUnavailable("node_backhaul_2_lbl", "node_backhaul_2_name", "Please select node backhaul 2");
+    }
+    if ($('#vlan_access').val() == "") {
+        setUnavailable("vlan_access_lbl", "vlan_access", "Please entry VLAN access");
+    }
     var url = $("#url").val();
     var formData = new FormData($('#form_data')[0]);
-    //if there is any not-found
-    $.ajax({
-        url: url,
-        type: 'POST',
-        dataType: 'JSON',
-        data: formData,
-        cache: false,
-        contentType: false,
-        processData: false,
-        headers: {
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        },
-        beforeSend: function() {
-            loadingOpen('.dashboard-wrapper');
-            $('#validasi_content').html('');
-        },
-        success: function(response) {
-            loadingClose('.dashboard-wrapper');
-            if (response.status == 200) {
-                Toast.fire({
-                    icon: 'success',
-                    title: response.message
-                });
-                if (typeof response.object !== 'undefined') {
-                    //if (response.object.length > 0) {
-                    $.each(response.object, function(key, value) {
-                        $('#' + key).val(value);
+    var mvar = "";
+    $('#validasi_content').empty();
+    $("span.not-available").each(function() {
+        $('#validasi_content').append('<li>' + $(this).html() + '</li>');
+        mvar += $(this).html();
+    });
+    if(mvar != "") {
+        $('#modal_validation').modal('show');
+    }
+    if (mvar == "") {
+        $.ajax({
+            url: url,
+            type: 'POST',
+            dataType: 'JSON',
+            data: formData,
+            cache: false,
+            contentType: false,
+            processData: false,
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            beforeSend: function() {
+                loadingOpen('.dashboard-wrapper');
+                $('#validasi_content').html('');
+            },
+            success: function(response) {
+                loadingClose('.dashboard-wrapper');
+                if (response.status == 200) {
+                    Toast.fire({
+                        icon: 'success',
+                        title: response.message
                     });
-                    //}
+                    if (typeof response.object !== 'undefined') {
+                        $.each(response.object, function(key, value) {
+                            $('#' + key).val(value);
+                        });
+                    }
+                    if(response.url != "") {
+                        window.open(response.url, "_self");
+                    }
+                } else if (response.status == 422) {
+                    $.each(response.error, function(i, val) {
+                        $('#validasi_content').append('<li>' + val + '</li>');
+                    })
+                    $('#modal_validation').modal('show');
+                } else {
+                    Toast.fire({
+                        icon: 'warning',
+                        title: response.message
+                    });
                 }
-            } else if (response.status == 422) {
-                $.each(response.error, function(i, val) {
-                    $('#validasi_content').append('<li>' + val + '</li>');
-                })
-                $('#modal_validation').modal('show');
-            } else {
+                simpanResponse = response;
+            },
+            error: function() {
+                loadingClose('.dashboard-wrapper');
                 Toast.fire({
-                    icon: 'warning',
-                    title: response.message
+                    icon: 'error',
+                    title: 'Server Error!'
                 });
             }
-            simpanResponse = response;
-        },
-        error: function() {
-            loadingClose('.dashboard-wrapper');
-            Toast.fire({
-                icon: 'error',
-                title: 'Server Error!'
-            });
-        }
-    });
+        });
+    }
 }
 
 function loadPage(page, selector) {
@@ -370,12 +422,10 @@ function pickNode(id, node_id) {
 }
 
 function checkScheduler(id) {
-    //console.log('val scheduler = ' + $('#' + id).val());
     if ($('#' + id).val() != '') {
         setAvailable(id + '_lbl', id, "Scheduler is set");
-        validation--;
     } else {
-        setUnavailable(id + '_lbl', id, "Please choose a scheduler");
+        setOptional(id + '_lbl', id, "Please choose a scheduler");
     }
 }
 
@@ -391,7 +441,8 @@ function checkTaskId(task_id) {
             dataType: 'json',
             success: function(response) {
                 $('#div_status').html(response.status);
-                if (response.status == 'submitted' || response.status == 'done') {
+                if (response.status == 'submitted' || response.status == 'executing' || response.status ==
+                    'done') {
                     $('input').attr('readonly', true);
                     $('.select2').attr('disabled', true);
                 } else {
@@ -484,9 +535,12 @@ function loadScheduler(node, id, oldScheduler = '') {
 var validation;
 
 function checkAll() {
-    validation = 0;
+    //validation = 0;
     $('#div_vsiname').hide();
-    checkDescription('service_description', 'service_description_lbl');
+    $('#select_port_access').hide();
+    $('#select_port_backhaul_1').hide();
+    $('#select_port_backhaul_2').hide();
+    /*checkDescription('service_description', 'service_description_lbl');
     checkDescription('access_description', 'access_description_lbl');
 
     checkNode('node_access_name', 'node_access_lbl', 'node_access', $('#node_access_scheduler').val());
@@ -510,12 +564,13 @@ function checkAll() {
     checkScheduler('node_access_scheduler');
     checkScheduler('node_backhaul_1_scheduler');
     checkScheduler('node_backhaul_2_scheduler');
+    */
 }
 
 function checkDescription(id, lbl) {
     $('#' + id).addClass('loading');
     if ($('#' + id).val().length < 6) {
-        setUnavailable(lbl, id, "Min 6 character");
+        setUnavailable(lbl, id, "Description Min 6 character");
     } else {
         setAvailable(lbl, id, "OK");
     }
@@ -523,56 +578,73 @@ function checkDescription(id, lbl) {
 }
 
 
-function checkNode(id, lbl, textbox, oldScheduler = '') {  
+function checkNode(id, lbl, textbox, oldScheduler = '') {
     var name = id.replace('_name', '').replace('node_', '');
     $.ajax({
         url: "{{ url('panel/metro/check-node') }}" + '?name=' + $('#' + id).val(),
         contentType: 'application/json',
         dataType: 'json',
-        beforeSend : function(){
+        beforeSend: function() {
             var div = '<div class="loading-select" id="div_' + id + '"></div>';
             $('#' + id).prev().prev().append(div);
         },
         success: function(response) {
             if (response.status == 200) {
-                setAvailable(lbl, id, "Found Node : " + response.ip + " manufacture " + response
-                    .manufacture);
-                $('#' + textbox).val(response.ip);
-
-                $('#' + id.replace('name', '') + 'manufacture').val(response.manufacture);
-                if (response.manufacture == "HUAWEI") {
-                    $('#select_port_' + name).show();
-                    select2Node('#select_port_' + name, '#node_' + name + '_name', 'port-huawei', response
-                        .manufacture);
-                    $('#input_port_' + name).hide();
-                    $('#node_' + name + '_scheduler').hide();
-                    $('#node_' + name + '_scheduler').val('');
-                    $('#div_vsiname').show();
-                    $('#lblvcid').text('VSI ID');
-                } else {
-                    $('#select_port_' + name).hide();
-                    $('#input_port_' + name).show();
-                    $('#node_' + name + '_scheduler').show();
-                    $('#node_' + name + '_scheduler').val();
-                    $('#div_vsiname').hide();
-                    $('#vsiname').val('');
-                    $('#lblvcid').text('VCID');
+                if ($('#node_manufacture').val() == "") {
+                    $('#node_manufacture').val(response.manufacture);
                 }
-                select2Node('#qos_' + name, '#node_' + name + '_name', 'qos', response.manufacture);
+                if ($('#node_manufacture').val() == response.manufacture) {
+                    setAvailable(lbl, id, "Found Node : " + response.ip + " manufacture " + response
+                        .manufacture);
+                    $('#' + textbox).val(response.ip);
+
+                    $('#' + id.replace('name', '') + 'manufacture').val(response.manufacture);
+
+                    if (response.manufacture == "HUAWEI") {
+                        $('#select_port_' + name).show();
+                        select2Node('#select_port_' + name, '#node_' + name + '_name', 'port-huawei',
+                            response
+                            .manufacture);
+                        $('#input_port_' + name).hide();
+                        $('#node_' + name + '_scheduler').hide();
+                        $('#node_' + name + '_scheduler').val('');
+                        $('#div_vsiname').show();
+                        $('#lblvcid').text('VSI ID');
+                    } else {
+                        $('#select_port_' + name).hide();
+                        $('#input_port_' + name).show();
+                        $('#node_' + name + '_scheduler').show();
+                        $('#node_' + name + '_scheduler').val();
+                        $('#div_vsiname').hide();
+                        $('#vsiname').val('');
+                        $('#lblvcid').text('VCID');
+                    }
+                    $('#port_' + name + '_lbl_top').html('Port ' + name.replace("_", " "));
+                    select2Node('#qos_' + name, '#node_' + name + '_name', 'qos', response.manufacture);
+                } else {
+                    setUnavailable(lbl, id, "Cannot choose diferent manufacture!");
+                    $('#select_port_' + name).hide();
+                    $('#port_' + name).hide();
+                    $('#' + textbox).val('');
+                    $('#' + id.replace('name', '') + 'manufacture').val('');
+                }
             } else {
-                setUnavailable(lbl, id, "Node not found");
+                setUnavailable(lbl, id, "Node " + name + " unavailable");
                 $('#select_port_' + name).hide();
                 $('#port_' + name).hide();
                 $('#' + textbox).val('');
                 $('#' + id.replace('name', '') + 'manufacture').val('');
-            } 
+            }
             if ($('#' + id.replace('name', 'scheduler')).val() != "") {
                 loadScheduler($('#' + id).val(), id.replace('name', 'scheduler'), oldScheduler);
             } else {
                 loadScheduler($('#' + id).val(), id.replace('name', 'scheduler'));
             }
+            if (name == "access") {
+                checkAccess();
+            }
         },
-        complete : function(){
+        complete: function() {
             $('#div_' + id).remove();
         }
     });
@@ -617,7 +689,7 @@ function checkVcid(id, lbl, vcidOrVsiname) {
     var name = lbl.replace('vcid_', '').replace('_lbl', '');
     var vsiname = $('#vsiname').val();
     var url = "{{ url('panel/metro/check-vcid') }}" + '?name=' + $('#node_' + name + '_name').val();
-    if(vcidOrVsiname == "vcid") {
+    if (vcidOrVsiname == "vcid") {
         url += '&vcid=' + $('#' + id).val() + '&vsiname=';
     } else if (vcidOrVsiname == "vcid") {
         url += '&vcid=&vsiname=' + vsiname;
@@ -625,7 +697,7 @@ function checkVcid(id, lbl, vcidOrVsiname) {
         url += '&vcid=' + $('#' + id).val() + '&vsiname=' + vsiname;
     }
     if ($('#' + id).val().length < 4) {
-        setUnavailable(lbl, id, "VCID/VSI ID " + name + " min 4 character");
+        setUnavailable(lbl, id, "VCID/VSI ID " + name + " min 4 characters");
     }
     $.ajax({
         url: url,
@@ -639,38 +711,40 @@ function checkVcid(id, lbl, vcidOrVsiname) {
                 if ($('#' + id).val().length < 4) {
                     setUnavailable(lbl, id, "VCID/VSI ID " + name + " min 4 character");
                 } else {
-                    setAvailable(lbl, id, "VCID/VSI ID " + name + " Available");               
+                    setAvailable(lbl, id, "VCID/VSI ID " + name + " Available");
                 }
-                if($('#vsiname').val() != "" ) {
-                    setAvailable('vsiname_' + name + '_lbl', 'vsiname', "VSI-Name " + name + " available" );
-                } else {
-                    setUnavailable('vsiname_' + name + '_lbl', 'vsiname', "Please entry VSI-Name " + name );
+                if ($('#vsiname').val() != "" && $('#node_manufacture').val() == "HUAWEI") {
+                    setAvailable('vsiname_' + name + '_lbl', 'vsiname', "VSI-Name " + name + " available");
+                } else if($('#vsiname').val() == "" && $('#node_manufacture').val() == "HUAWEI") {
+                    setUnavailable('vsiname_' + name + '_lbl', 'vsiname', "Please entry VSI-Name " + name);
                 }
                 $('#vlan_' + name)
-                        .val("")
-                        .removeAttr("readonly");
+                    .removeAttr("readonly");
                 $('#input_port_' + name)
-                        .val("")
-                        .removeAttr("readonly");
-                        
+                    .removeAttr("readonly");
                 $("#select_port_" + name)
-                        .val("")
-                        .trigger("change")
-                        .removeAttr('disabled');
-                if(name != 'access') {
-                    setOptional('vlan_' + name + "_lbl", 'vlan_' + name, '(optional) Please entry VLAN ' + name );
-                    if(response.manufacture == "ALCATEL-LUCENT") {
-                        setOptional('port_' + name + "_lbl", 'input_port_' + name, '(optional) Please entry PORT ' + name );
+                    .trigger("change")
+                    .removeAttr('disabled');
+
+                if (name != 'access') {
+                    setOptional('vlan_' + name + "_lbl", 'vlan_' + name, '(optional) Please entry VLAN ' +
+                        name);
+                    if (response.manufacture == "ALCATEL-LUCENT") {
+                        setOptional('port_' + name + "_lbl", 'input_port_' + name,
+                            '(optional) Please entry PORT ' + name);
                     } else {
-                        setOptional('port_' + name + "_lbl", 'select_port_' + name, '(otpional) Please select PORT ' + name );
+                        setOptional('port_' + name + "_lbl", 'select_port_' + name,
+                            '(optional) Please select PORT ' + name);
                     }
-                
+
                 } else {
-                    setUnavailable('vlan_' + name + "_lbl", 'vlan_' + name, 'Please entry VLAN ' + name );
-                    if(response.manufacture == "ALCATEL-LUCENT") {
-                        setUnavailable('port_' + name + "_lbl", 'input_port_' + name, 'Please entry PORT ' + name );
+                    setUnavailable('vlan_' + name + "_lbl", 'vlan_' + name, 'Please entry VLAN ' + name);
+                    if (response.manufacture == "ALCATEL-LUCENT") {
+                        setUnavailable('port_' + name + "_lbl", 'input_port_' + name, 'Please entry PORT ' +
+                            name);
                     } else {
-                        setUnavailable('port_' + name + "_lbl", 'select_port_' + name, 'Please select PORT ' + name );
+                        setUnavailable('port_' + name + "_lbl", 'select_port_' + name,
+                            'Please select PORT ' + name);
                     }
                 }
             } else { //ditemukan vcid, port dan vlan
@@ -678,70 +752,181 @@ function checkVcid(id, lbl, vcidOrVsiname) {
                     $('#qos_' + name).val('');
                     $('#node_' + name + '_scheduler').val('');
                     var vlanPort = "";
-                    
+
                     $('#vlan_' + name)
                         .val(response.vlan)
                         .attr("readonly", true);
-                   
+
                     $('#input_port_' + name)
                         .val(response.port)
                         .attr("readonly", true);
-                        
+
                     var newOption = new Option(response.port, response.port, true, true);
                     $("#select_port_" + name)
                         .append(newOption)
                         .trigger("change")
-                        .select2({disabled:'readonly'});
-                    
-                    setAvailable(lbl, id, "Node " + name + " already configured, and used for " + response.description);
-                    if(vcidOrVsiname == "vcid" && response.manufacture == 'HUAWEI') {
-                        $('#vsiname').val(response.description).show();               
-                    } else if(vcidOrVsiname == "vsiname") {
+                        .select2({
+                            disabled: 'readonly'
+                        });
+
+                    setAvailable(lbl, id, "Node " + name + " already configured, and used for " + response
+                        .description);
+                    if (vcidOrVsiname == "vcid" && response.manufacture == 'HUAWEI') {
+                        $('#vsiname').val(response.description).show();
+                    } else if (vcidOrVsiname == "vsiname") {
                         $('#vcid').val(response.vcid);
-                        setAvailable('vsiname_' + name + '_lbl', 'vsiname', "VSI-Name already configured" );
-                    } else if(vcidOrVsiname != "vcid" && vcidOrVsiname != "vsiname" && response.manufacture == 'HUAWEI') {
-                        if($('#vsiname').val() == '') {
+                        setAvailable('vsiname_' + name + '_lbl', 'vsiname', "VSI-Name already configured");
+                    } else if (vcidOrVsiname != "vcid" && vcidOrVsiname != "vsiname" && response
+                        .manufacture == 'HUAWEI') {
+                        if ($('#vsiname').val() == '') {
                             $('#vsiname').val(response.description)
                         }
-                        if($('#vcid').val() == '') {
+                        if ($('#vcid').val() == '') {
                             $('#vcid').val(response.vcid)
                         }
                     }
-                    setAvailable('vsiname_' + name + '_lbl', 'vsiname', "VSI-Name " +name+" already configured" );
-                    setAvailable('vlan_' + name + "_lbl", 'vlan_' + name, 'Vlan ' + name + " already configured");
-                    setAvailable('port_' + name + "_lbl", 'input_port_' + name, 'Port ' + name + " already configured");
-                    setAvailable('port_' + name + "_lbl", 'select_port_' + name, 'Port ' + name + " already configured");
+                    setAvailable('vsiname_' + name + '_lbl', 'vsiname', "VSI-Name " + name +
+                        " already configured");
+                    setAvailable('vlan_' + name + "_lbl", 'vlan_' + name, 'Vlan ' + name +
+                        " already configured");
+                    setAvailable('port_' + name + "_lbl", 'input_port_' + name, 'Port ' + name +
+                        " already configured");
+                    setAvailable('port_' + name + "_lbl", 'select_port_' + name, 'Port ' + name +
+                        " already configured");
                 } else {
-                    $('#vlan_' + name)
+                    checkAccess()
+                    /*$('#vlan_' + name)
                         .val(response.vlan)
                         .attr("readonly", true);
                     $('#input_port_' + name)
                         .val(response.port)
                         .attr("readonly", true);
-                        var newOption = new Option(response.port, response.port, true, true);
+                    var newOption = new Option(response.port, response.port, true, true);
                     $("#select_port_" + name)
                         .append(newOption)
                         .trigger("change")
-                        .select2({disabled:'readonly'});
-                    setUnavailable(lbl, id, "Node " + name + " already configured and unavailable for VCID = " + response.vcid);
-                    if(vcidOrVsiname == "vcid" && response.manufacture == 'HUAWEI') {
-                        $('#vsiname').val(response.description).show();               
-                    } else if(vcidOrVsiname == "vsiname") {
+                        .select2({
+                            disabled: 'readonly'
+                        });
+                    setUnavailable(lbl, id, "Node " + name +
+                        " already configured and unavailable for VCID = " + response.vcid);
+                    if (vcidOrVsiname == "vcid" && response.manufacture == 'HUAWEI') {
+                        $('#vsiname').val(response.description).show();
+                    } else if (vcidOrVsiname == "vsiname") {
                         $('#vcid').val(response.vcid);
-                        setUnavailable('vsiname_' + name + '_lbl', 'vsiname', "VSI-Name already configured" );
+                        setUnavailable('vsiname_' + name + '_lbl', 'vsiname',
+                        "VSI-Name already configured");
                     }
-                    setUnavailable('vsiname_' + name + '_lbl', 'vsiname', "VSI-Name " +name+" already configured and unavailable" );
-                    setUnavailable('vlan_' + name + "_lbl", 'vlan_' + name, 'Vlan ' + name + " already configured and unavailable, please change VCID/VSI name to use this vlan");
-                    setUnavailable('port_' + name + "_lbl", 'input_port_' + name, 'Port ' + name + " already configured and unavailable, please change VCID/VSI name to use this port");
-                    setUnavailable('port_' + name + "_lbl", 'select_port_' + name, 'Port ' + name + " already configured and unavailable, please change VCID/VSI name to use this port");
+                    setUnavailable('vsiname_' + name + '_lbl', 'vsiname', "VSI-Name " + name +
+                        " already configured and unavailable");
+                    setUnavailable('vlan_' + name + "_lbl", 'vlan_' + name, 'Vlan ' + name +
+                        " already configured and unavailable, please change VCID/VSI name to use this vlan"
+                        );
+                    setUnavailable('port_' + name + "_lbl", 'input_port_' + name, 'Port ' + name +
+                        " already configured and unavailable, please change VCID/VSI name to use this port"
+                        );
+                    setUnavailable('port_' + name + "_lbl", 'select_port_' + name, 'Port ' + name +
+                        " already configured and unavailable, please change VCID/VSI name to use this port"
+                        );
+                    //checkInterface(name);*/
                 }
             }
-            if (!$('#node_' + name + '_lbl').hasClass("found")) {
+            if (!$('#node_' + name + '_lbl').hasClass("found") && name != "access") {
                 setUnavailable(lbl, id, "Node " + name + " not valid");
             }
         },
-        complete : function() {
+        complete: function() {
             $('#' + id).removeClass('loading');
+        }
+    });
+}
+
+function checkAccess() {
+    var manufacture = $('#node_manufacture').val();
+    var port = "";
+    var vlan = $('#vlan_access').val();
+    var vcid = $('#vcid').val();
+    var node = $('#node_access_name').val();
+    if (manufacture == "HUAWEI") {
+        port = $('#select_port_access').val();
+    } else {
+        port = $('#input_port_access').val();
+    }
+    $('#hidden_port_access').val(port);
+    if (port == "") {
+        setUnavailable('port_access_lbl', 'input_port_access', "Please entry port access");
+        setUnavailable('port_access_lbl', 'select_port_access', "Please entry port access");
+    }
+    if (vlan == "") {
+        setUnavailable('vlan_access_lbl', 'vlan_access', "Please entry VLAN access");
+    }
+    if (vlan.length < 3) {
+        setUnavailable('vlan_access_lbl', 'vlan_access', "VLAN access min 3 characters");
+    }
+    if (vcid == "") {
+        setUnavailable('vcid_access_lbl', 'vcid', "Please entry VCID/VSI ID access");
+    }
+    if (vcid.length < 4) {
+        setUnavailable('vcid_access_lbl', 'vcid', "VCID/VSI ID min 4 characters");
+    }
+    if (node == "" || node == null) {
+        setUnavailable('vcid_access_lbl', 'vcid', "Please select node access");
+        setUnavailable('node_access_lbl', 'node_access_name', "Please select node access");
+    }
+    //checkPort("access");
+    $.ajax({
+        url: "{{ url('panel/metro/check-access') }}" + '?name=' + node +
+            '&vlan=' + $('#vlan_access').val() +
+            '&port=' + port +
+            '&vcid=' + $('#vcid').val() +
+            '&vsiname=' + $('#vsiname').val() +
+            '&manufacture=' + manufacture,
+        contentType: 'application/json',
+        dataType: 'json',
+        beforeSend: function() {
+            //    var div = '<div class="loading-select" id="div_' + id + '"></div>';
+            //    $('#' + id).prev().prev().append(div);
+        },
+        success: function(response) {
+            if (node != "") {
+                if (manufacture == "HUAWEI") {
+                    var vcidLbl = "VSI ID";
+                } else {
+                    var vcidLbl = "VCID";
+                }
+                if (response.statusVcid != 200 && vcid != "" && vcid.length > 3) {
+                    setAvailable('vcid_access_lbl', 'vcid', vcidLbl + " access available");
+                } else if (response.statusVcid == 200 && vcid != "" && vcid.length > 3) {
+                    var msgVcid = vcidLbl + " access configured with " + response.interfaces.total +
+                        " interfaces ";
+                    if (response.interfaces.total == 1) {
+                        msgVcid += response.interfaces.result[0].name;
+                    }
+                    setAvailable('vcid_access_lbl', 'vcid', msgVcid);
+                }
+                
+                if (response.statusPort == 200 && port != "") {
+                    if(response.vcid == vcid) {
+                        setUnavailable('port_access_lbl', 'input_port_access', "Interfaces " + response
+                            .interface + " already configured with " + vcidLbl + " = " + response.vcid);
+                        setUnavailable('port_access_lbl', 'select_port_access', "Interfaces " + response
+                            .interface + " already configured with " + vcidLbl + " = " + response.vcid);
+                        setUnavailable('vcid_access_lbl', 'vcid', msgVcid);
+                    }
+                } else if (response.statusPort != 200 && port != "") {
+                    setAvailable('port_access_lbl', 'input_port_access', "Port access available");
+                    setAvailable('port_access_lbl', 'select_port_access', "Port access available");
+                }
+                if (response.statusVlan == 200 && vlan != "" && vlan.length > 2) {
+                    setUnavailable('vlan_access_lbl', 'vlan_access', "Interfaces " + response.interface +
+                        " already configured with " + vcid + " = " + response.vcid);
+                } else if (response.statusVlan != 200 && vlan != "" && vlan.length > 2) {
+                    setAvailable('vlan_access_lbl', 'vlan_access', "VLAN access available");
+                }
+            }
+        },
+        complete: function() {
+            $('#div_' + id).remove();
         }
     });
 }
@@ -752,7 +937,6 @@ $('input').on('change', function(e) {
 })
 
 function checkQosBefore(id, lbl, node) {
-    
     var name = id.replace('qos_', '');
     var qosType = "";
     if (id.includes('access')) {
@@ -763,121 +947,168 @@ function checkQosBefore(id, lbl, node) {
         qosType = "bakhaul 2";
     }
     var manufacture = $('#node_' + name + '_manufacture').val();
+    if($('#qos_'+name+'_install').val() == 1) {
+        $.ajax({
+            url: "{{ url('panel/metro/check-qos') }}" + '?node=' + $('#' + node).val() +
+                '&qos=' + $('#' + id).val() +
+                '&manufacture=' + manufacture,
+            contentType: 'application/json',
+            dataType: 'json',
+            beforeSend: function() {
+                var div = '<div class="loading-select" id="div_' + id + '"></div>';
+                $('#' + id).prev().prev().append(div);
+            },
+            success: function(response) {
+                if (response.status == 200) {
+                    setAvailable(lbl, id, response.message);
+                } else {
+                    setUnavailable(lbl, id, "Qos " + qosType + " not available");
+                }
+            },
+            complete: function() {
+                $('#div_' + id).remove();
+            }
+        });
+        setAvailable(lbl, id, "");
+    }
+}
+
+function checkPort(name) {
+    var port = '';
+    if ($('#node_manufacture') == 'HUAWEI') {
+        port = $("#select_port_" + name).val();
+    } else {
+        port = $("#input_port_" + name).val();
+    }
     $.ajax({
-        url: "{{ url('panel/metro/check-qos') }}" + '?node=' + $('#' + node).val() +
-            '&qos=' + $('#' + id).val() +
-            '&manufacture=' + manufacture,
-        contentType: 'application/json',
+        url: "{{ url('panel/metro/check-port') }}" + '?port=' + port +
+            '&name=' + $("#node_" + name + '_name').val(),
         dataType: 'json',
-        beforeSend :function() {
-            var div = '<div class="loading-select" id="div_' + id + '"></div>';
-            $('#' + id).prev().prev().append(div);
+        beforeSend: function() {
+            $('#select_port_' + name).addClass('loading');
+            $('#input_port_' + name).addClass('loading');
         },
         success: function(response) {
             if (response.status == 200) {
-                setAvailable(lbl, id, response.message);
+                if (response.parent != port) {
+                    $('#port_' + name + '_lbl_top').html('Port ' + name.replace("_", " ") + ' : ' + port +
+                        ' is a member of ' + response.parent)
+                } else {
+                    $('#port_' + name + '_lbl_top').html('Port ' + name.replace("_", " "));
+                }
+                $("#select_port_" + name).val(response.parent);
+                $("#input_port_" + name).val(response.parent);
+                $("#hidden_port_" + name).val(response.parent);
             } else {
-                setUnavailable(lbl, id, "Qos " + qosType + " not available");
-            } 
+                $('#port_' + name + '_lbl_top').html('Port ' + name.replace("_", " "));
+                $("#hidden_port_" + name).val(port);
+            }
         },
-        complete : function() {
-            $('#div_' + id).remove();
+        complete: function() {
+            $('#select_port_' + name).removeClass('loading');
+            $('#input_port_' + name).removeClass('loading');
+            if (name != "access") {
+                checkInterface(name);
+            } else {
+                checkAccess();
+            }
         }
     });
 }
 
-function checkInterface(port, vlan, lbl_port, lbl_vlan, node, type) {
-    var manufacture = node.replace('name', '') + 'manufacture';
-    var name = "";
+function checkInterface(name) {
+    var manufacture = 'node_' + name + '_manufacture';
+    var node = 'node_' + name + '_name';
+    var lbl_port = 'port_' + name + '_lbl';
+    var lbl_vlan = 'vlan_' + name + '_lbl';
+    var vlan = 'vlan_' + name;
     var value_node = $('#' + node).val();
-    switch (node) {
-        case 'node_access_name':
-            name = "access";
-            break;
-        case 'node_backhaul_1_name':
-            name = "backhaul_1";
-            break;
-        case 'node_backhaul_2_name':
-            name = "backhaul_2";
-            break;
-        default:
-            break;
-    }
 
-        if($('#' + manufacture).val() == "ALCATEL-LUCENT") {
-            var portVal = $('#input_' + port).val();
+    if ($('#' + manufacture).val() == "ALCATEL-LUCENT") {
+        var port = 'input_port_' + name;
+        var portVal = $('#' + port).val();
+
+    } else {
+        var port = 'select_port_' + name;
+        var portVal = $('#' + port).val();
+    }
+    if (value_node == '' || value_node == null) {
+        setUnavailable(lbl_port, port, "Please choose node " + name.replace('_', ' '));
+        setUnavailable(lbl_vlan, vlan, "Please choose node " + name.replace('_', ' '));
+    } else if (portVal == '' || portVal == null) {
+        if ($('#input_' + port).css('display') == 'block') {
+            if(name != "access") {
+                setOptional(lbl_port, port, "Please entry port " + name.replace('_', ' '));
+            } else {
+                setUnavailable(lbl_port, port, "Please entry port " + name.replace('_', ' '));
+            }
         } else {
-            var portVal = $('#select_' + port ).val();
+            if(name != "access") {
+                setOptional(lbl_port, port, "Please entry port " + name.replace('_', ' '));
+            } else {
+                setUnavailable(lbl_port, port, "Please entry port " + name.replace('_', ' '));
+            }
         }
-        if (value_node == '' || value_node == null) {
-            setUnavailable(lbl_port, port, "Please choose node " + name.replace('_', ' '));
-            setUnavailable(lbl_vlan, vlan, "Please choose node " + name.replace('_', ' '));
-        } else if (portVal == '' || portVal == null) {
-            if ($('#input_' + port).css('display') == 'block') {
-                setOptional(lbl_port, 'input_' + port, "Please entry port " + name.replace('_', ' '));
-            } else {
-                setOptional(lbl_port, 'select_' + port, "Please entry port " + name.replace('_', ' '));
-            }
-            setOptional(lbl_vlan, vlan, "Please entry port " + name.replace('_', ' '));
-        } else if ($('#' + vlan).val() == '' || $('#' + vlan).val() == null) {
-            if ($('#input_' + port).css('display') == 'block') {
-                setOptional(lbl_port, 'input_' + port, "Please entry vlan " + name.replace('_', ' '));
-            } else {
-                setOptional(lbl_port, 'select_' + port, "Please entry vlan " + name.replace('_', ' '));
-            }
-            setOptional(lbl_vlan, vlan, "Please entry vlan " + name.replace('_', ' '));
-        } else if ($('#' + vlan).val().length < 4) {
-            setUnavailable(lbl_port, port, "VLAN must be 4 digits");
-            setUnavailable(lbl_vlan, vlan, "VLAN must be 4 digits");
+        setOptional(lbl_vlan, vlan, "Please entry port " + name.replace('_', ' '));
+    } else if ($('#' + vlan).val() == '' || $('#' + vlan).val() == null) {
+        if ($('#input_' + port).css('display') == 'block') {
+            setOptional(lbl_port, port, "Please entry vlan " + name.replace('_', ' '));
         } else {
-            var urlCheck = "{{ url('panel/metro/check-interface') }}"+ '?name=' + value_node +
-                    '&port=' + portVal + 
-                    '&vlan=' + $('#' + vlan).val() +
-                    '&manufacture=' + $('#' + manufacture).val();
-            $.ajax({
-                url: urlCheck,
-                contentType: 'application/json',
-                dataType: 'json',
-                beforeSend: function() {
-                    $('#' + port).addClass('loading');
-                    $('#' + vlan).addClass('loading');
-                },
-                success: function(response) {
-                    if (response.code !== 200) { 
-                        // kalau  belum use gimana? vsi id dikosongkan atau biarkan?
-                        setAvailable(lbl_port, port, "Port " + name + " available");
-                        setAvailable(lbl_vlan, vlan, "VLAN " + name + " available");
-                    } else { //jika sudah used
-                        $('#vcid').val(response.vcid);
-                        if($('#' + manufacture).val() == "HUAWEI") {
-                            $('#vsiname').val(response.vsiname);
-                        }
-                        setAvailable(lbl_port, port, response.message);
-                        setAvailable(lbl_vlan, vlan, response.message);
-                    }
+            setOptional(lbl_port, port, "Please entry vlan " + name.replace('_', ' '));
+        }
+        setOptional(lbl_vlan, vlan, "Please entry vlan " + name.replace('_', ' '));
+    } else if ($('#' + vlan).val().length < 4) {
+        setUnavailable(lbl_port, port, "VLAN must be 4 digits");
+        setUnavailable(lbl_vlan, vlan, "VLAN must be 4 digits");
+    } else {
+        var urlCheck = "{{ url('panel/metro/check-interface') }}" + '?name=' + value_node +
+            '&port=' + portVal +
+            '&vlan=' + $('#' + vlan).val() +
+            '&manufacture=' + $('#' + manufacture).val();
+        $.ajax({
+            url: urlCheck,
+            contentType: 'application/json',
+            dataType: 'json',
+            beforeSend: function() {
+                $('#' + port).addClass('loading');
+                $('#' + vlan).addClass('loading');
+            },
+            success: function(response) {
+                if (response.code !== 200) {
+                    setAvailable(lbl_port, port, "Port " + name + " available");
+                    setAvailable(lbl_vlan, vlan, "VLAN " + name + " available");
+                } else { //jika sudah used
+                    $('#vcid').val(response.vcid);
                     if ($('#' + manufacture).val() == "HUAWEI") {
-                        
-                        $('#select_port_' + name).show();
-                        $('#input_port_' + name).hide();
+                        $('#vsiname').val(response.vsiname);
+                        setAvailable('vcid_' + name + "_lbl", 'vcid_' + name, "VSI ID " + name +
+                            " available");
                     } else {
-                        $('#select_port_' + name).hide();
-                        $('#input_port_' + name).show();
+                        setAvailable('vcid_' + name + "_lbl", 'vcid_' + name, "VCID " + name +
+                        " available");
                     }
-                },
-                complete : function(){
-                    $('#' + port).removeClass('loading');
-                    $('#' + vlan).removeClass('loading');
+                    setAvailable(lbl_port, port, response.message);
+                    setAvailable(lbl_vlan, vlan, response.message);
                 }
-            });
-        }
-        $('#vlan_' + name + '_lbl').show();
-        $('#port_' + name + '_lbl').show();
-        $('#qos_' + name + '_lbl').show();
-        $('#node_' + name + '_scheduler_lbl').show();
-    /*} else if ($('#vcid').val() == ""){
-        setUnavailable(lbl_port, port, "Please entry VCID");
-        setUnavailable(lbl_vlan, vlan, "Please entry VCID");
-        $('#node_' + name + '_scheduler_lbl').hide();
-    }*/
+                if ($('#' + manufacture).val() == "HUAWEI") {
+                    $('#select_port_' + name).show();
+                    $('#input_port_' + name).hide();
+                } else {
+                    $('#select_port_' + name).hide();
+                    $('#input_port_' + name).show();
+                }
+
+
+            },
+            complete: function() {
+                $('#' + port).removeClass('loading');
+                $('#' + vlan).removeClass('loading');
+            }
+        });
+    }
+    $('#vlan_' + name + '_lbl').show();
+    $('#port_' + name + '_lbl').show();
+    $('#qos_' + name + '_lbl').show();
+    $('#node_' + name + '_scheduler_lbl').show();
 }
 </script>

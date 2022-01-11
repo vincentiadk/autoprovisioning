@@ -79,12 +79,14 @@ Route::middleware('auth.login')->group(function () {
             Route::get('/', 'MetroController@index');
             Route::get('/check-node', 'MetroController@checkNode');
             Route::get('/check-interface', 'MetroController@checkInterface');
+            Route::get('/check-port', 'MetroController@checkPort');
             Route::get('/check-task', 'MetroController@checkTask');
             Route::get('/check-vcid', 'MetroController@checkVcid');
             Route::get('/check-qos', 'MetroController@checkQos');
             Route::get('/status-task', 'MetroController@statusTask');
             Route::get('/get-circuits', 'MetroController@getCircuits');
             Route::get('/confirm-task', 'MetroController@confirmTask');
+            Route::get('/check-access', 'MetroController@checkAccess');
             Route::post('datatable', 'MetroController@datatable');
         });
 

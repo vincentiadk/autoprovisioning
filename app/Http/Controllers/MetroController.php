@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Traits\Authorization;
+use App\Models\ActivityLog;
 use App\Models\ConfigurationStatus;
 use App\Models\MetroList;
 use App\Models\User;
@@ -12,23 +14,34 @@ use Illuminate\Support\Facades\Validator;
 
 class MetroController extends Controller
 {
+    use Authorization;
     private $url;
     private $client;
+    public $user;
 
     public function __construct()
     {
         $this->url = config('metro.url');
         $this->client = new Client(["base_uri" => $this->url, "http_errors" => false, 'verify' => false]);
+        $this->user = User::find(session('id'));
     }
 
     public function store()
     {
         $user = User::findOrFail(session('id'));
+        if ($user->nwuser == "" || $user->nwpass == "") {
+            $response = [
+                'status' => 500,
+                'message' => "You need to specify username and password for TACACS IP access",
+            ];
+            return response()->json($response);
+        }
         $config_id = request('config_id');
 
         $validator = Validator::make(request()->all(), [
-            'service_description' => 'required',
-            'access_description' => 'required',
+            'description_access' => 'required',
+            'description_backhaul_1' => 'required',
+            'description_backhaul_2' => 'required',
             'vcid' => 'required|numeric|min:10',
             'node_backhaul_1' => 'required|ip',
             'node_backhaul_2' => 'required|ip',
@@ -44,14 +57,15 @@ class MetroController extends Controller
             'node_backhaul_2_name' => 'required',
             //'vlan' => 'required'
             /*'qos_access' => 'required',
-        'qos_backhaul_1' => 'required',
-        'qos_backhaul_2' => 'required',
-        'scheduler_access' => 'required',
-        'scheduler_backhaul_1' => 'required',
-        'scheduler_backhaul_2' => 'required',*/
+            'qos_backhaul_1' => 'required',
+            'qos_backhaul_2' => 'required',
+            'scheduler_access' => 'required',
+            'scheduler_backhaul_1' => 'required',
+            'scheduler_backhaul_2' => 'required',*/
         ], [
-            "service_description.required" => "Service Description wajib diisi!",
-            "access_description.required" => "Access Description wajib diisi!",
+            "description_access.required" => "Description access wajib diisi!",
+            "description_backhaul_1.required" => "Description backhaul 1 wajib diisi!",
+            "description_backhaul_2.required" => "Description backhaul 2 wajib diisi!",
             "vcid.required" => "VCID wajib diisi!",
             "vcid.numeric" => "VCID harus berisi angka",
             "vcid.min" => "VCID minimal 10 digit",
@@ -71,9 +85,11 @@ class MetroController extends Controller
             ];
             try {
                 if (intval($metro_list_id) == 0) {
+                    //\Log::info(request()->all());
                     $metro = MetroList::create([
-                        'service_description' => request('service_description'),
-                        'access_description' => request('access_description'),
+                        'description_access' => request('description_access'),
+                        'description_backhaul_1' => request('description_backhaul_1'),
+                        'description_backhaul_2' => request('description_backhaul_2'),
                         'vcid' => request('vcid'),
                         'vsiname' => request('vsiname'),
                         'node_backhaul_1' => request('node_backhaul_1'),
@@ -96,7 +112,16 @@ class MetroController extends Controller
                         'scheduler_backhaul_2' => request('scheduler_backhaul_2'),
                         //'vlan' => request('vlan')
                     ]);
-                    $result = $this->createTask($metro);
+                    ActivityLog::create([
+                        'log_name' => 'create',
+                        'description' => 'create metro',
+                        'subject_id' => $metro->id,
+                        'subject_type' => "App\Models\MetroList",
+                        'causer_id' => session('id'),
+                        'causer_type' => "App\Models\User",
+                        'properties' => json_encode($metro->toArray()),
+                    ]);
+                    $result = $this->createTask($metro, $user);
                     $obj = [
                         'metro_list_id' => $metro->id,
                         'task_id' => $result['task_id'],
@@ -111,8 +136,11 @@ class MetroController extends Controller
                 } else {
                     $metro = MetroList::find($metro_list_id);
                     $metro->update([
-                        'service_description' => request('service_description'),
-                        'access_description' => request('access_description'),
+                        //'service_description' => request('service_description'),
+                        //'access_description' => request('access_description'),
+                        'description_access' => request('description_access'),
+                        'description_backhaul_1' => request('description_backhaul_1'),
+                        'description_backhaul_2' => request('description_backhaul_2'),
                         'vcid' => request('vcid'),
                         'vsiname' => request('vsiname'),
                         'node_backhaul_1' => request('node_backhaul_1'),
@@ -133,11 +161,12 @@ class MetroController extends Controller
                         'scheduler_access' => request('scheduler_access'),
                         'scheduler_backhaul_1' => request('scheduler_backhaul_1'),
                         'scheduler_backhaul_2' => request('scheduler_backhaul_2'),
+                        'manufacture' => request('node_manufacture'),
                         //'vlan' => request('vlan'),
                     ]);
                     $task_id = $metro->task_id;
                     if ($metro->task_id == '') {
-                        $result = $this->createTask(MetroList::find($metro_list_id));
+                        $result = $this->createTask(MetroList::find($metro_list_id), $user);
                         $task_id = $result['task_id'];
                     }
                     $obj = [
@@ -171,33 +200,67 @@ class MetroController extends Controller
         }
         return response()->json($response);
     }
-    public function createTask(MetroList $metro)
+    public function createTask(MetroList $metro, User $user)
     {
-        $options = [
-            "name" => "tselmetro",
-            "data" => [
-                "serviceDescription" => $metro->service_description,
-                "accessDescription" => $metro->access_description,
-                "vcid" => $metro->vcid,
-                "vsiName" => $metro->vsiname,
-                "nodeBackhaul1" => $metro->node_backhaul_1,
-                "nodeBackhaul2" => $metro->node_backhaul_2,
-                "portBackhaul1" => $metro->port_backhaul_1,
-                "portBackhaul2" => $metro->port_backhaul_2,
-                "vlanBackhaul1" => $metro->vlan_backhaul_1,
-                "vlanBackhaul2" => $metro->vlan_backhaul_2,
-                "nodeAccess" => $metro->node_access,
-                "vlanAccess" => $metro->vlan_access,
-                "portAccess" => $metro->port_access,
-                "schedulerAccess" => $metro->scheduler_access,
-                "qosAccess" => $metro->qos_access, //bisa null
-                "schedulerBackhaul1" => $metro->scheduler_backhaul_1,
-                "qosBackhaul1" => $metro->qos_backhaul_1,
-                "schedulerBackhaul2" => $metro->scheduler_backhaul_2,
-                "qosBackhaul2" => $metro->qos_backhaul_2,
-            ],
-        ];
+        //if ($metro->manufacture == "ALCATEL-LUCENT") {
+            $options = [
+                "name" => "tselmetro",
+                "data" => [
+                    'serviceDescriptionAccess' => $metro->description_access,
+                    'serviceDescriptionBackhaul1' => $metro->description_backhaul_1,
+                    'serviceDescriptionBackhaul2' => $metro->description_backhaul_2,
+                    'portDescriptionAccess' => $metro->description_access,
+                    'portDescriptionBackhaul1' => $metro->description_backhaul_1,
+                    'portDescriptionBackhaul2' => $metro->description_backhaul_2,
+                    "vcid" => $metro->vcid,
+                    "vsiName" => $metro->vsiname,
+                    "nodeBackhaul1" => $metro->node_backhaul_1,
+                    "nodeBackhaul2" => $metro->node_backhaul_2,
+                    "portBackhaul1" => $metro->port_backhaul_1,
+                    "portBackhaul2" => $metro->port_backhaul_2,
+                    "vlanBackhaul1" => $metro->vlan_backhaul_1,
+                    "vlanBackhaul2" => $metro->vlan_backhaul_2,
+                    "nodeAccess" => $metro->node_access,
+                    "vlanAccess" => $metro->vlan_access,
+                    "portAccess" => $metro->port_access,
+                    "schedulerAccess" => $metro->scheduler_access,
+                    "qosAccess" => $metro->qos_access, //bisa null
+                    "schedulerBackhaul1" => $metro->scheduler_backhaul_1,
+                    "qosBackhaul1" => $metro->qos_backhaul_1,
+                    "schedulerBackhaul2" => $metro->scheduler_backhaul_2,
+                    "qosBackhaul2" => $metro->qos_backhaul_2,
+                ],
+            ];
+            \Log::info($options);
+        /*} else { //HUAWEI
+            $options = [
+                "name" => "tselmetro",
+                "data" => [
+                    'portDescriptionAccess' => $metro->description_access,
+                    'portDescriptionBackhaul1' => $metro->description_backhaul_1,
+                    'portDescriptionBackhaul2' => $metro->description_backhaul_2,
+                    "vcid" => $metro->vcid,
+                    "vsiName" => $metro->vsiname,
+                    "nodeBackhaul1" => $metro->node_backhaul_1,
+                    "nodeBackhaul2" => $metro->node_backhaul_2,
+                    "portBackhaul1" => $metro->port_backhaul_1,
+                    "portBackhaul2" => $metro->port_backhaul_2,
+                    "vlanBackhaul1" => $metro->vlan_backhaul_1,
+                    "vlanBackhaul2" => $metro->vlan_backhaul_2,
+                    "nodeAccess" => $metro->node_access,
+                    "vlanAccess" => $metro->vlan_access,
+                    "portAccess" => $metro->port_access,
+                    "schedulerAccess" => $metro->scheduler_access,
+                    "qosAccess" => $metro->qos_access, //bisa null
+                    "schedulerBackhaul1" => $metro->scheduler_backhaul_1,
+                    "qosBackhaul1" => $metro->qos_backhaul_1,
+                    "schedulerBackhaul2" => $metro->scheduler_backhaul_2,
+                    "qosBackhaul2" => $metro->qos_backhaul_2,
+                ],
+            ]; 
+        } */
         try {
+            //$token = $this->getToken('nwuser='.$this->decrypt($user->nwuser) .';nwpass='. $this->decrypt($user->nwpass), $user);
             $response = $this->client->post("/network/v1/tasks", ["json" => $options]);
             $result = json_decode($response->getBody()->getContents(), true);
             $metro->update([
@@ -232,7 +295,16 @@ class MetroController extends Controller
             $result = json_decode($response->getBody()->getContents(), true);
             $metro = MetroList::where('task_id', request('task_id'))->first();
             $metro->update([
-                'status' => $result["status"]
+                'status' => $result["status"],
+            ]);
+            ActivityLog::create([
+                'log_name' => 'update',
+                'description' => 'update metro',
+                'subject_id' => $metro->id,
+                'subject_type' => "App\Models\MetroList",
+                'causer_id' => session('id'),
+                'causer_type' => "App\Models\User",
+                'properties' => json_encode($metro->toArray()),
             ]);
             return $result;
         } catch (\Exception $e) {
@@ -247,7 +319,15 @@ class MetroController extends Controller
             if (request('name') != '') {
                 $name = request('name');
             }
-            $response = $this->client->get("/network/v1/nodes/" . $name);
+            $token = $this->getToken(null, $this->user);
+            $response = $this->client->get("/network/v1/nodes/" . $name,
+                [
+                    'headers' => [
+                        'Content-Type' => 'application/json',
+                        'Authorization' => 'Bearer ' . $token["access_token"],
+                    ],
+                ]); 
+            //$response = $this->client->get("/network/v1/nodes/" . $name);
             if ($response->getStatusCode() !== 200) {
                 return [
                     'status' => $response->getStatusCode(),
@@ -262,28 +342,100 @@ class MetroController extends Controller
             return false;
         }
     }
-    public function getInterface($id) {
-        $response = $this->client->get("/network/v1/circuits/" . $id . "/interfaces");
-        $result = json_decode($response->getBody()->getContents(), true)['result'][0];
-        
+   
+    public function checkAccess()
+    {
+        $vcid = request('vcid');
+        $vsiname = request('vsiname');
+        $result = [];
+        $token = $this->getToken(null, $this->user);
+        $header = [ 
+            'headers' => [
+                    'Content-Type' => 'application/json',
+                    'Authorization' => 'Bearer ' . $token["access_token"],
+                ]
+            ];
+        if ($vcid != "" & $vsiname != "") {
+            $response = $this->client->get("/network/v1/nodes/" . request('name') . "/circuits?vcid=" . $vcid . '&description=' . $vsiname);
+            $result['statusVcid'] = $response->getStatusCode();
+        } else if ($vsiname == "" && $vcid != "") {
+            $response = $this->client->get("/network/v1/nodes/" . request('name') . "/circuits?vcid=" . $vcid);
+        } else if ($vsiname != "" && $vcid == "") {
+            $response = $this->client->get("/network/v1/nodes/" . request('name') . "/circuits?description=" . $vsiname);
+        } else if ($vcid == "" && $vsiname == "") {
+            $result['statusVcid'] = 404;
+        }
+
+        if (isset($response)) {
+            if ($response->getStatusCode() !== 200) {
+                $result['statusVcid'] = $response->getStatusCode();
+            } else {
+                $result["statusVcid"] = 200;
+                $jsonRes = json_decode($response->getBody()->getContents(), true)['result'][0];
+                $result["interfaces"] = $this->getInterfaces($jsonRes["id"]);
+            }
+        }
+        switch (request('manufacture')) {
+            case 'ALCATEL-LUCENT':
+                $response2 = $this->client->get("/network/v1/nodes/" . request('name') . "/interfaces?name=" . urlencode(request('port') . ':' . request('vlan')), $header);
+                break;
+            case 'HUAWEI':
+                $response2 = $this->client->get("/network/v1/nodes/" . request('name') . "/interfaces?name=" . urlencode(request('port') . '.' . request('vlan')), $header);
+                break;
+            default:break;
+        }
+        if ($response2->getStatusCode() !== 200) {
+            $result['statusPort'] = $response2->getStatusCode();
+            $result['statusVlan'] = $response2->getStatusCode();
+        } else {
+            $result['statusPort'] = 200;
+            $result['statusVlan'] = 200;
+            $jsonRes2 = json_decode($response2->getBody()->getContents(), true)['result'][0];
+            $result['vcid'] = $jsonRes2["vcid"];
+            $result['interface'] = $jsonRes2["name"];
+        }
+        return $result;
+    }
+
+    public function getInterface($id)
+    {
+        $token = $this->getToken('', $this->user);
+        $header = [ 
+            'headers' => [
+                    'Content-Type' => 'application/json',
+                    'Authorization' => 'Bearer ' . $token["access_token"],
+                ]
+            ];
+        $response = $this->client->get("/network/v1/circuits/" . $id . "/interfaces", $header);
+        //$result = json_decode($response->getBody()->getContents(), true)['result'][0];
+
+        $jsonResult = json_decode($response->getBody()->getContents(), true);
+        if ($jsonResult["total"] == 1) {
+            $result = $jsonResult['result'][0];
+        }
+
         $result["name"] = str_replace(":", ".", $result["name"]);
         $portvlan = explode(".", $result["name"]);
-       
+
         $return = [
             "port" => $portvlan[0],
-            "vlan"  => $portvlan[1]
+            "vlan" => $portvlan[1],
         ];
 
         return $return;
     }
+    public function getInterfaces($id)
+    {
+        $response = $this->client->get("/network/v1/circuits/" . $id . "/interfaces");
+        $result = json_decode($response->getBody()->getContents(), true);
 
-    public function getVsiname($vcid, $node) { //cek lagi kenapa ga jalan
-        $response = $this->client->get("/network/v1/nodes/" . $node . "/circuits?vcid=" . $vcid );
+        return $result;
+    }
+
+    public function getVsiname($vcid, $node)
+    {
+        $response = $this->client->get("/network/v1/nodes/" . $node . "/circuits?vcid=" . $vcid);
         $r = json_decode($response->getBody()->getContents(), true)['result'][0];
-        $return = [
-            "vsiname" => $r["name"],
-        ];
-        
         return $r["name"];
     }
     public function checkInterface()
@@ -307,14 +459,14 @@ class MetroController extends Controller
                     ];
                 } else {
                     $result = json_decode($response->getBody()->getContents(), true)['result'][0];
-                   
-                    if($node["manufacture"] == "HUAWEI") {
+
+                    if ($node["manufacture"] == "HUAWEI") {
                         $vsiname = $this->getVsiname($result["vcid"], request('name'));
                         $result["vsiname"] = $vsiname;
                     }
                     $result['code'] = 200;
                     $result['message'] = "Interfaces " . $result['name'] . ' already used';
-                    
+
                     return $result;
                 }
             } catch (\Exception $e) {
@@ -328,6 +480,23 @@ class MetroController extends Controller
         }
     }
 
+    public function checkPort()
+    {
+        $response = $this->client->get("/network/v1/nodes/" . request('name') . "/interfaces?name=" . urlencode(request('port')));
+        if ($response->getStatusCode() !== 200) {
+            return [
+                'status' => $response->getStatusCode(),
+            ];
+        } else {
+            $result = json_decode($response->getBody()->getContents(), true)['result'][0];
+            if (!array_key_exists('parent', $result)) {
+                $result['parent'] = request('port');
+            }
+            $result['status'] = 200;
+            return $result;
+        }
+    }
+
     public function checkVcid()
     {
         $node = $this->checkNode();
@@ -337,15 +506,15 @@ class MetroController extends Controller
                 switch ($node['manufacture']) {
                     case 'ALCATEL-LUCENT':
                         $response = $this->client->get("/network/v1/nodes/" . request('name') . "/circuits?vcid=" . request('vcid'));
-                        
+
                         if ($response->getStatusCode() !== 200) {
                             $result = [
                                 'status' => $response->getStatusCode(),
                             ];
-                        } else { 
+                        } else {
                             $result = json_decode($response->getBody()->getContents(), true)["result"][0];
                             $result2 = $this->getInterface($result["id"]);
-                         
+
                             $result["status"] = 200;
                             $result["port"] = $result2["port"];
                             $result["vlan"] = $result2["vlan"];
@@ -356,7 +525,7 @@ class MetroController extends Controller
                     case 'HUAWEI':
                         $vcid = request('vcid');
                         $vsiname = request('vsiname');
-                        if($vcid != "" & $vsiname != "") {
+                        if ($vcid != "" & $vsiname != "") {
                             $response = $this->client->get("/network/v1/nodes/" . request('name') . "/circuits?vcid=" . $vcid . '&description=' . $vsiname);
                         } else if ($vsiname == "" && $vcid != "") {
                             $response = $this->client->get("/network/v1/nodes/" . request('name') . "/circuits?vcid=" . $vcid);
@@ -370,7 +539,7 @@ class MetroController extends Controller
                         } else {
                             $result = json_decode($response->getBody()->getContents(), true)['result'][0];
                             $result2 = $this->getInterface($result["id"]);
-                        
+
                             $result['status'] = 200;
                             $result["port"] = $result2["port"];
                             $result["vlan"] = $result2["vlan"];
@@ -380,7 +549,7 @@ class MetroController extends Controller
                     default:break;
                 }
                 return $result;
-                
+
             } catch (\Exception $e) {
                 return false;
             }
@@ -395,7 +564,7 @@ class MetroController extends Controller
     public function checkQos()
     {
         $return = [];
-   
+
         switch (request('manufacture')) {
             case 'ALCATEL-LUCENT':
                 try {
@@ -492,23 +661,23 @@ class MetroController extends Controller
         $length = $request->input('length');
         $search = strtolower($request->input('search.value'));
         $query = "?type=M";
-        $responseFiltered = $this->client->get("/network/v1/nodes" . $query 
-        . "&name=like:" 
-        . $search 
-        . '&limit=' 
-        . $length 
-        . '&offset=' . $start * $length );
-        $resultTotal =  $this->client->get("/network/v1/nodes" . $query);
+        $responseFiltered = $this->client->get("/network/v1/nodes" . $query
+            . "&name=like:"
+            . $search
+            . '&limit='
+            . $length
+            . '&offset=' . $start * $length);
+        $resultTotal = $this->client->get("/network/v1/nodes" . $query);
 
         $totalData = json_decode($resultTotal->getBody()->getContents(), true)['total'];
 
         $filtered = json_decode($responseFiltered->getBody()->getContents(), true);
-        if(isset($filtered['result'])) {
+        if (isset($filtered['result'])) {
             $totalFiltered = $filtered['total'];
         } else {
             $totalFiltered = 0;
         }
-        
+
         $response['data'] = [];
         if (isset($filtered['result'])) {
             $nomor = $start + 1;
@@ -521,7 +690,7 @@ class MetroController extends Controller
                     $val['manufacture'],
                     $val['area'],
                     $val['group'],
-                    ''
+                    '',
                 ];
                 $nomor++;
             }

@@ -7,10 +7,23 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\User;
 use App\Models\SettingConfiguration;
 use App\Jobs\SendEmailJob;
+use App\Http\Controllers\Traits\Authorization;
 use DB;
+use GuzzleHttp\Client;
 
 class UserController extends Controller
 {
+    use Authorization;
+    private $url;
+    private $client;
+    public $user;
+
+    public function __construct()
+    {
+        $this->url = config('metro.url');
+        $this->client = new Client(["base_uri" => $this->url, "http_errors" => false, 'verify' => false]);
+        $this->user = User::find(session('id'));
+    }
     public function index()
     {
         $data = [
@@ -90,6 +103,8 @@ class UserController extends Controller
         if ($id > 0) {
             $user = User::findOrFail($id);
             $data['type'] = 'update';
+            $data['nwpass_decrypted'] = $user->nwpass == "" ? "" : $this->decrypt($user->nwpass);
+            $data['nwuser_decrypted'] = $user->nwuser == "" ? "" : $this->decrypt($user->nwuser);
         } else {
             $user = new User;
             $data['type'] = 'create';
@@ -128,11 +143,15 @@ class UserController extends Controller
         $message = '';
         $validator = Validator::make(request()->all(), [
             "email" => $id > 0 ? "required|email|unique:users,email," . $id : "required|email|unique:users,email",
-            "nik"   => $id > 0 ? "required|numeric|unique:users,nik," . $id : "required|numeric|unique:users,nik",
+            "nik"   => $id > 0 ? "required|numeric|digits_between:1,8|unique:users,nik," . $id : "required|numeric|digits_between:1,8|unique:users,nik",
         ], [
             "email.required" => "Email wajib di isi!",
             "email.unique" => "Email Telah Terdaftar!",
             "email.email" => "Email tidak valid!",
+            "nik.required" => "NIK wajib diisi!",
+            "nik.numeric" => "NIK wajib berisi angka!",
+            "nik.unique" => "NIK telah terdaftar!",
+            "nik.digits_between" => "Jumlah digit NIK antara 1 sampai 8 digit!"
         ]);
         if ($validator->fails()) {
             $response = [
@@ -148,7 +167,9 @@ class UserController extends Controller
                         'active' => request('active'),
                         'name' => request('name'),
                         'regional'  => request('regional'),
-                        'nik'   => request('nik')
+                        'nik'   => request('nik'),
+                        'nwuser' => request('nwuser') == '' ? null : $this->encrypt(request('nwuser')),
+                        'nwpass' => request('nwpass') == '' ? null: $this->encrypt(request('nwpass'))
                     ]);
                     $message .= 'Berhasil menyimpan. ';
                     $response = [
