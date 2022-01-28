@@ -48,12 +48,23 @@ class LogController extends Controller
                 } else{
                     $data= 'N\A';
                 }
+                if(isset($val->properties["new"])) {
+                    $new = $val->properties["new"];
+                } else {
+                    $new = $val->properties;
+                }
+                $newString = "";
+                if($new != null) {
+                    foreach($new as $key=>$value){
+                        $newString .= $key." : ".$value."</br>";
+                    }
+                }
                 $response['data'][] = [
                     $nomor,
-                    $val->causer->name,
+                    $val->causer ? $val->causer->name : "SYSTEM",
                     $val->description,
                     $data,
-                    $val->getExtraProperty('after'),
+                    $newString,
                     $val->created_at->diffForHumans()                 
                 ];
                 $nomor++;

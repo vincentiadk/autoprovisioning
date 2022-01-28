@@ -14,16 +14,7 @@ use GuzzleHttp\Client;
 class UserController extends Controller
 {
     use Authorization;
-    private $url;
-    private $client;
-    public $user;
 
-    public function __construct()
-    {
-        $this->url = config('metro.url');
-        $this->client = new Client(["base_uri" => $this->url, "http_errors" => false, 'verify' => false]);
-        $this->user = User::find(session('id'));
-    }
     public function index()
     {
         $data = [
@@ -105,6 +96,34 @@ class UserController extends Controller
             $data['type'] = 'update';
             $data['nwpass_decrypted'] = $user->nwpass == "" ? "" : $this->decrypt($user->nwpass);
             $data['nwuser_decrypted'] = $user->nwuser == "" ? "" : $this->decrypt($user->nwuser);
+            $checkUser = $this->checkUser($data['nwuser_decrypted'], $data['nwpass_decrypted'], $user);
+            $data['tacacs_notification'] =  "credentials ". $checkUser["credential_name"] . " is " . ($checkUser["valid"] == true ? "valid" : "not valid");
+        } else {
+            $user = new User;
+            $data['type'] = 'create';
+        }
+        $data['user'] = $user;
+        if( request()->header('X-PJAX') ) {
+            return view('user-form', ['data' => $data]);
+        } else {
+            return view('layouts.index', ['data' => $data]);
+        }
+    }
+
+    public function profile()
+    {
+        $data = [
+            'title' => 'Lihat Profile',
+            'content' => 'user-form',
+        ];
+        $id = session('id');
+        if ($id > 0) {
+            $user = User::findOrFail($id);
+            $data['type'] = 'update';
+            $data['nwpass_decrypted'] = $user->nwpass == "" ? "" : $this->decrypt($user->nwpass);
+            $data['nwuser_decrypted'] = $user->nwuser == "" ? "" : $this->decrypt($user->nwuser);
+            $checkUser = $this->checkUser($data['nwuser_decrypted'], $data['nwpass_decrypted'], $user);
+            $data['tacacs_notification'] =  "credentials ". $checkUser["credential_name"] . " is " . ($checkUser["valid"] == true ? "valid" : "not valid");
         } else {
             $user = new User;
             $data['type'] = 'create';
@@ -171,14 +190,16 @@ class UserController extends Controller
                         'nwuser' => request('nwuser') == '' ? null : $this->encrypt(request('nwuser')),
                         'nwpass' => request('nwpass') == '' ? null: $this->encrypt(request('nwpass'))
                     ]);
+                    
+                    $checkUser = $this->checkUser(request('nwuser'), request('nwpass'), $user);
                     $message .= 'Berhasil menyimpan. ';
                     $response = [
                         'status' => 200,
                         'message' => $message,
+                        'tacacs_notification' =>  "credentials ". $checkUser["credential_name"] . " is " . ($checkUser["valid"] == true ? "valid" : "not valid"),
+                        'tacacs_valid' => $checkUser["valid"],
                     ];
-                }
-                /*
-                if (request('type') == 'setting') {
+                } else if (request('type') == 'setting') {
                     $user = User::findOrFail(request('id'));
                     $user->update([
                         'username' => request('username'),
@@ -212,9 +233,25 @@ class UserController extends Controller
                                 'error' => ['Password lama salah'],
                             ];
                         }
+                    } else {
+                        if (request('password_new') == request('password_confirm')) {
+                            $user->update([
+                                'password' => Hash::make(request('password_new')),
+                            ]);
+                            $message .= 'Berhasil ganti password. ';
+                            $response = [
+                                'status' => 200,
+                                'message' => $message,
+                            ];
+                        } else {
+                            $response = [
+                                'status' => 422,
+                                'error' => ['Konfirmasi password salah'],
+                            ];
+                        }
                     }
                     
-                }*/
+                }
             } else {
                 $user = User::create([
                     'email' => request('email'),

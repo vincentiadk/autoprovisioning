@@ -18,7 +18,7 @@
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="#" onclick="goToPage('panel/dashboard')" class="breadcrumb-link">Dashboard</a></li>
                             <li class="breadcrumb-item"><a href="#" onclick="goToPage('panel/user')" class="breadcrumb-link">User</a></li>
-                            <li class="breadcrumb-item active" aria-current="page">Detail User</li>
+                            <li class="breadcrumb-item active" aria-current="page">Setting</li>
                         </ol>
                     </nav>
                 </div>

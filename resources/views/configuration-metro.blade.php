@@ -1,79 +1,10 @@
-<style>
-.found {
-    color: #28a745;
-    font-size: 80%;
-}
-
-.not-available {
-    font-size: 80%;
-    color: #dc3545;
-}
-
-.optional {
-    font-size: 80%;
-    color: #5969ff;
-}
-
-.form-control.not-available {
-    color: #dc3545;
-    border: 1px solid #dc3545;
-}
-
-.form-control.optional {
-    color: #5969ff;
-    border: 1px solid #5969ff;
-}
-
-.form-control.found {
-    color: #28a745;
-    border: 1px solid #28a745;
-}
-
-.loading {
-    background-color: white;
-    background-image: url("{{ url('storage/spin2.gif') }}");
-    background-size: 25px 25px;
-    background-position: right center;
-    background-repeat: no-repeat;
-}
-
-.status {
-    background-color: #17c0dc;
-    height: 50px;
-    width: 150px;
-    position: absolute;
-    right: 0px;
-    padding: 15px;
-    color: white;
-
-}
-
-.loading-select {
-    width: 25px;
-    height: 25px;
-    background-color: transparent;
-    position: absolute;
-    margin-right: 0px;
-    margin-left: 70%;
-    margin-top: 10px;
-    z-index: 999;
-    background-image: url(http://localhost:8000/storage/spin2.gif);
-    background-size: 25px 25px;
-    background-position: right center;
-    background-repeat: no-repeat;
-}
-
-#plans {
-    font-size: 10px;
-}
-</style>
 <div class="card-body">
     <div class="row">
         <div class="col-sm-12">
             <h4 class="card-title mb-0">
                 {{ $data['title'] }}
             </h4>
-            Task ID : <span id="task_id"> {{ $data['metro']->task_id }} </span>
+            Task ID : <span id="task_id">{{ $data['metro']->task_id }}</span>
 
         </div>
         <div id="div_status" class="status">
@@ -130,14 +61,6 @@
             <div class="row">
                 <div class="col-md-4" style="background: #cdf5fb;    padding: 10px;" id="vcid_node_access">
                     <div class="form-group">
-                        <label for="service_description" class="form-control-label">
-                            Description Access
-                        </label>
-                        <input type="text" name="description_access" id="description_access" class="form-control"
-                            value="{{ $data['metro']->description_access }}" required>
-                        <span id="description_access_lbl" class="not-available"></span>
-                    </div>
-                    <div class="form-group">
 
                         <label for="vlan" class="form-control-label">
                             Node Access
@@ -155,13 +78,13 @@
                         <input id="node_access_manufacture" name="node_access_manufacture" type="hidden">
                     </div>
                     <div class="form-group">
-                        <label for="port_access" class="form-control-label port" id="port_access_lbl_top">
+                        <label for="port_access" class="form-control-label" id="port_access_lbl_top">
                             Port access
                         </label>
                         <input type="hidden" value="{{ $data['metro']->port_access }}" id="hidden_port_access"
-                            name="port_access">
-                        <input type="tel" id="input_port_access" class="form-control"
-                            value="{{ $data['metro']->port_access }}" onchange="checkAccess()">
+                            name="port_access" >
+                        <input type="tel" id="input_port_access" class="form-control port"
+                            value="{{ $data['metro']->port_access }}" onkeypress="allowChar(event, id)">
 
                         <select class="select2 form-control" id="select_port_access" onchange="checkAccess()">
                             @if($data['metro']->port_access != '')
@@ -180,6 +103,14 @@
                             value="{{ $data['metro']->vlan_access }}" onkeypress="allowNumbersOnly(event)" required
                             onchange="checkAccess()">
                         <span id="vlan_access_lbl" class="not-available"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="service_description" class="form-control-label">
+                            Description/Service Access
+                        </label>
+                        <textarea name="description_access" id="description_access"
+                            class="form-control" required>{{ $data['metro']->description_access }}</textarea>
+                        <span id="description_access_lbl" class="not-available"></span>
                     </div>
                     <div class="form-group row">
                         <div class="col-md-6">
@@ -234,14 +165,6 @@
                 </div>
                 <div class="col-md-4" style="    background: #bff3c8bb;    padding: 10px;" id="vcid_node_backhaul_1">
                     <div class="form-group">
-                        <label for="service_description" class="form-control-label">
-                            Description Backhaul 1
-                        </label>
-                        <input type="text" name="description_backhaul_1" id="description_backhaul_1"
-                            class="form-control" value="{{ $data['metro']->description_backhaul_1 }}" required>
-                        <span id="description_backhaul_1_lbl" class="not-available"></span>
-                    </div>
-                    <div class="form-group">
                         <label for="node_backhaul_1" class="form-control-label">
                             Node Backhaul 1
                         </label>
@@ -264,7 +187,7 @@
                         <input type="hidden" value="{{ $data['metro']->port_backhaul_1 }}" id="hidden_port_backhaul_1"
                             name="port_backhaul_1">
                         <input type="tel" id="input_port_backhaul_1" class="form-control port"
-                            value="{{ $data['metro']->port_backhaul_1 }}">
+                            value="{{ $data['metro']->port_backhaul_1 }}"  onkeypress="allowChar(event, id)">
                         <select class="select2 form-control select-port" id="select_port_backhaul_1">
                             @if($data['metro']->port_backhaul_1 != '')
                             <option value="{{$data['metro']->port_backhaul_1}}" selected>
@@ -281,6 +204,14 @@
                         <input type="tel" name="vlan_backhaul_1" id="vlan_backhaul_1" class="form-control vlan"
                             value="{{ $data['metro']->vlan_backhaul_1 }}" onkeypress="allowNumbersOnly(event)" required>
                         <span id="vlan_backhaul_1_lbl"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="description_backhaul_1" class="form-control-label">
+                            Description/Service Backhaul 1
+                        </label>
+                        <textarea name="description_backhaul_1" id="description_backhaul_1"
+                            class="form-control" required>{{ $data['metro']->description_backhaul_1 }}</textarea>
+                        <span id="description_backhaul_1_lbl"></span>
                     </div>
                     <div class="form-group row">
                         <div class="col-md-6">
@@ -336,14 +267,7 @@
                     </div>
                 </div>
                 <div class="col-md-4" style="background: #e3ebfd;    padding: 10px;" id="vcid_node_backhaul_2">
-                    <div class="form-group">
-                        <label for="service_description" class="form-control-label">
-                            Description Backhaul 2
-                        </label>
-                        <input type="text" name="description_backhaul_2" id="description_backhaul_2"
-                            class="form-control" value="{{ $data['metro']->description_backhaul_2 }}" required>
-                        <span id="description_backhaul_2_lbl" class="not-available"></span>
-                    </div>
+                   
                     <div class="form-group">
                         <label for="node_backhaul_2" class="form-control-label">
                             Node Backhaul 2
@@ -366,7 +290,7 @@
                         <input type="hidden" name="port_backhaul_2" id="hidden_port_backhaul_2"
                             value="{{ $data['metro']->port_backhaul_2 }}">
                         <input type="tel" id="input_port_backhaul_2" class="form-control port"
-                            value="{{ $data['metro']->port_backhaul_2 }}">
+                            value="{{ $data['metro']->port_backhaul_2 }}"  onkeypress="allowChar(event, id)">
                         <select class="select2 form-control select-port" id="select_port_backhaul_2">
                             @if($data['metro']->port_backhaul_2 != '')
                             <option value="{{$data['metro']->port_backhaul_2}}" selected>
@@ -383,6 +307,14 @@
                         <input type="tel" name="vlan_backhaul_2" id="vlan_backhaul_2" class="form-control vlan"
                             value="{{ $data['metro']->vlan_backhaul_2 }}" onkeypress="allowNumbersOnly(event)" required>
                         <span id="vlan_backhaul_2_lbl"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="description_backhaul_2" class="form-control-label">
+                            Description/Service Backhaul 2
+                        </label>
+                        <textarea name="description_backhaul_2" id="description_backhaul_2"
+                            class="form-control" required>{{ $data['metro']->description_backhaul_2 }}</textarea>
+                        <span id="description_backhaul_2_lbl"></span>
                     </div>
                     <div class="form-group row">
                         <div class="col-md-6">
@@ -471,14 +403,13 @@
         </div>
     </div>
     <script>
-    checkTaskId($('#task_id').html());
+
+    checkTaskEvery5sec();
     checkAll();
     select2AutoSuggest('#node_access_name', 'node');
     select2AutoSuggest('#node_backhaul_1_name', 'node');
     select2AutoSuggest('#node_backhaul_2_name', 'node');
-    //select2Node('#qos_access', '#node_access_name', 'qos');
-    //select2Node('#qos_backhaul_1', '#node_backhaul_1_name', 'qos');
-    //select2Node('#qos_backhaul_2', '#node_backhaul_2_name', 'qos');
+    
     $('.qos_install').on('change', function() {
         var name = $(this).attr('id');
         if ($(this).val() == 1) {
@@ -498,23 +429,13 @@
     })
     $('#vcid').on('change', function() {
         checkAccess();
-        if ($('#node_backhaul_1_name').val() != "") {
-            checkVcid('vcid', 'vcid_backhaul_1_lbl', 'vcid');
-        }
-        if ($('#node_backhaul_2_name').val() != "") {
-            checkVcid('vcid', 'vcid_backhaul_2_lbl', 'vcid');
-        }
+        checkBackhaul(1, $(this).attr('id'));
+        checkBackhaul(2, $(this).attr('id'));
     })
     $('#vsiname').on('change', function() {
-        if ($('node_access').val() != "") {
-            checkVcid('vcid', 'vcid_access_lbl', 'vsiname');
-        }
-        if ($('node_backhaul_1').val() != "") {
-            checkVcid('vcid', 'vcid_backhaul_1_lbl', 'vsiname');
-        }
-        if ($('node_backhaul_2').val() != "") {
-            checkVcid('vcid', 'vcid_backhaul_2_lbl', 'vsiname');
-        }
+        checkAccess();
+        checkBackhaul(1, $(this).attr('id'));
+        checkBackhaul(2, $(this).attr('id'));
     })
     $('.node').on('change', function() {
         var node_id = $(this).attr('id');
@@ -527,16 +448,21 @@
         var vlan = "vlan_" + name;
         var portlbl = port + "_lbl";
         var vlanlbl = vlan + "_lbl";
+        /*
         if (name != "access") {
             checkVcid('vcid', 'vcid_' + name + '_lbl', null);
         }
+        */
         checkQosBefore("qos_" + name, "qos_" + name + "_lbl", node_id);
     })
 
     $('.vlan').on('change', function() {
         var name = $(this).attr('id').replace('vlan_', '');
-        console.log(name);
-        checkInterface(name);
+        if(name.includes('backhaul')){
+            checkBackhaul(name.split("_")[1], $(this).attr("id"));
+        } else {
+            checkAccess();
+        }
     })
     $('.qos').on('change', function() {
         var name = $(this).attr('id');
@@ -545,15 +471,17 @@
     })
 
     $('.port').on('change', function() {
+        console.log("tes change port");
         var name = $(this).attr('id').replace('port_', '').replace('input_', '');
         $('input[name=port_' + name + ']').val($(this).val());
-        checkPort(name);
+        checkPort(name, $(this).attr('id'));
     })
 
     $('.select-port').on('change', function() {
         var name = $(this).attr('id').replace('port_', '').replace('select_', '');
         $('input[name=port_' + name + ']').val($(this).val());
-        checkInterface(name);
+        checkPort(name, $(this).attr('id'));
     })
+
     </script>
 </div>

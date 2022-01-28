@@ -7,7 +7,12 @@ Route::get('login/sso', 'AuthController@sso');
 Route::match(['get', 'post'], 'register', 'AuthController@register');
 Route::get('register-success', 'AuthController@registerSuccess');
 Route::get('logout', 'AuthController@logout');
+Route::get('profile', 'UserController@profile');
 Route::get('auth/check-login', 'AuthController@checkLogin');
+
+Route::get('/chat', 'ChatsController@index');
+Route::get('messages', 'ChatsController@fetchMessages');
+Route::post('messages', 'ChatsController@sendMessage');
 
 Route::prefix('otp')->group(function() {
     Route::get('telegram', 'OtpController@showOtpTelegram');
@@ -87,6 +92,7 @@ Route::middleware('auth.login')->group(function () {
             Route::get('/get-circuits', 'MetroController@getCircuits');
             Route::get('/confirm-task', 'MetroController@confirmTask');
             Route::get('/check-access', 'MetroController@checkAccess');
+            Route::get('/check-backhaul', 'MetroController@checkBackhaul');
             Route::post('datatable', 'MetroController@datatable');
         });
 
@@ -128,3 +134,4 @@ Route::middleware('auth.login')->group(function () {
         
     });
 });
+Route::get('test', 'TestController@index');

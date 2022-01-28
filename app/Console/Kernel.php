@@ -4,6 +4,7 @@ namespace App\Console;
 
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+use  App\Console\Commands\CheckTask;
 
 class Kernel extends ConsoleKernel
 {
@@ -13,7 +14,7 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        //
+        Commands\CheckTask::class,
     ];
 
     /**
@@ -24,7 +25,16 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
+        $seconds = 5;
+        $schedule->call(function () use ($seconds, $schedule) {
+            $dt = \Carbon\Carbon::now();
+            $x = 60 / $seconds;
+            do {
+                \Artisan::call('check:task');
+                \Log::debug($x . ' executing at ' . date('Y-m-d H:i:s'));
+                time_sleep_until($dt->addSeconds($seconds)->timestamp);
+            } while ($x-- > 1);
+        })->everyMinute();
     }
 
     /**

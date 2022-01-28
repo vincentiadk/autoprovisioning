@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Traits\Authorization;
 use App\Models\OltList;
 use App\Models\User;
 use GuzzleHttp\Client;
@@ -9,13 +10,19 @@ use Illuminate\Http\Request;
 
 class Select2Controller extends Controller
 {
+    use Authorization;
     private $url;
     private $client;
+    public $user;
+    public $header;
 
     public function __construct()
     {
         $this->url = config('metro.url');
         $this->client = new Client(["base_uri" => $this->url, "http_errors" => false, 'verify' => false]);
+        $this->user = User::find(session('id'));
+        $token = $this->getToken(null, $this->user);
+        $this->header = $this->getHeader($token);
     }
 
     public function getUser()
@@ -53,7 +60,7 @@ class Select2Controller extends Controller
     public function getNode()
     {
         $search = strtolower(request('search'));
-        $api = $this->client->get("/network/v1/nodes?group=" . session('regional') . "&name=" . urlencode('like:' . $search) . '&type=M');
+        $api = $this->client->get("/network/v1/nodes?group=" . session('regional') . "&name=" . urlencode('like:' . $search) . '&type=M', $this->header);
         $result = json_decode($api->getBody()->getContents(), true);
         $response[] = [
             'id' => '',
@@ -79,11 +86,11 @@ class Select2Controller extends Controller
         ];
         switch (request('manufacture')) {
             case 'ALCATEL-LUCENT':
-                $api = $this->client->get("/network/v1/nodes/" . urlencode(request('node')) . "/qoses?name=like:" . $search . "&direction=I");
+                $api = $this->client->get("/network/v1/nodes/" . urlencode(request('node')) . "/qoses?name=like:" . $search . "&direction=I", $this->header);
                 $result = json_decode($api->getBody()->getContents(), true);
                 if (isset($result['result'])) {
                     foreach ($result['result'] as $d) {
-                        $api_e = $this->client->get("/network/v1/nodes/" . urlencode(request('node')) . "/qoses?name=like:" . $d['name'] . '&direction=E');
+                        $api_e = $this->client->get("/network/v1/nodes/" . urlencode(request('node')) . "/qoses?name=like:" . $d['name'] . '&direction=E', $this->header);
                         $egress = json_decode($api_e->getBody()->getContents(), true);
                         if ($api_e->getStatusCode() == 200) {
                             $response[] = [
@@ -95,7 +102,7 @@ class Select2Controller extends Controller
                 }
                 break;
             case 'HUAWEI':
-                $api = $this->client->get("/network/v1/nodes/" . urlencode(request('node')) . "/qoses?name=like:" . $search);
+                $api = $this->client->get("/network/v1/nodes/" . urlencode(request('node')) . "/qoses?name=like:" . $search, $this->header);
                 $result = json_decode($api->getBody()->getContents(), true);
                 if (isset($result['result'])) {
                     foreach ($result['result'] as $d) {
@@ -115,7 +122,7 @@ class Select2Controller extends Controller
 
     public function getScheduler()
     {
-        $api = $this->client->get("/network/v1/nodes/" . request('node') . "/qospolicies");
+        $api = $this->client->get("/network/v1/nodes/" . request('node') . "/qospolicies", $this->header);
         $result = json_decode($api->getBody()->getContents(), true);
         $response[] = [
             'id' => '',
@@ -136,7 +143,7 @@ class Select2Controller extends Controller
 
     public function getPortHuawei()
     {
-        $api = $this->client->get("/network/v1/nodes/" . request('node') . "/interfaces?type=physical&name=like:" . request('search'));
+        $api = $this->client->get("/network/v1/nodes/" . request('node') . "/interfaces?type=physical&name=like:" . request('search'), $this->header);
         $result = json_decode($api->getBody()->getContents(), true);
         $response[] = [
             'id' => '',

@@ -55,83 +55,122 @@ class AuthController extends Controller
                     $last_login_at = date('Y-m-d h:m:s');
                     $user = User::where('username', $request->username)->orWhere('email', $request->username)->first();
                     if ($user) {
-                        if ($user->active) {
-                            if ($user && $user->otp_login) {
-                                //jika bukan user ldap
-                                if ($user && !$user->ldap) {
-                                    if (Hash::check($request->password, $user->password)) {
+                        if (Hash::check($request->password, $user->password)) {
+                            if ($user->active) {
+                                if ($user && $user->otp_login) {
+                                    //jika bukan user ldap
+                                    if ($user && !$user->ldap) {
                                         $username = $request->username;
                                         $response = $this->cekPermitted($username, $ip, $browser);
 
-                                        $result = json_decode($response->getBody()->getContents(), true);
-                                        
-                                        if ($response->getStatusCode() === 200) {
-                                            $this->saveSession($user, $last_login_at, $ip);
-                                            return redirect()->intended('panel/dashboard');
+                                            $result = json_decode($response->getBody()->getContents(), true);
+                                            
+                                            if ($response->getStatusCode() === 200) {
+                                                $this->saveSession($user, $last_login_at, $ip);
+                                                return redirect()->intended('panel/dashboard');
 
-                                        } else {
-                                            $cookie = cookie('users', $user, 10);
-                                            try {
-                                                $response = $this->otpStatusCode($user->username);
-                                                return redirect('otp/verify')->cookie($cookie);
-                                            } catch (\Exception $e) {
-                                                return redirect()->back()->with('flash_danger', 'Error send OTP, please contact administrator');
+                                            } else {
+                                                $cookie = cookie('users', $user, 10);
+                                                try {
+                                                    $response = $this->otpStatusCode($user->username);
+                                                    return redirect('otp/verify')->cookie($cookie);
+                                                } catch (\Exception $e) {
+                                                    return redirect()->back()->with('flash_danger', 'Error send OTP, please contact administrator');
+                                                }
                                             }
-                                        }
-                                    } else {
-                                        return redirect()->back()->with('flash_danger', 'Password salah!');
-                                    }
-                                } else if ($user && $user->ldap) {
-                                    $response = $this->ldapLogin($request);
-
-                                    $result = json_decode($response->getBody()->getContents());
-
-                                    if ($response->getStatusCode() === 201 && $result->status === "success") {
-                                        $username = $request->username;
-                                        $ip = $request->ip();
-                                        $browser = $this->getBrowser();
-
-                                        $response = $this->cekPermitted($username, $ip, $browser);
+                                    } else if ($user && $user->ldap) {
+                                        $response = $this->ldapLogin($request);
 
                                         $result = json_decode($response->getBody()->getContents());
 
-                                        if ($response->getStatusCode() === 200) {
-                                            $this->saveSession($user, $last_login_at, $ip);
-                                            return redirect()->intended('panel/dashboard');
-                                        } else {
-                                            $cookie = cookie('users', $user, 10);
-                                            try {
-                                                $response = $this->otpStatusCode($user->username);
-                                                return redirect()->route('otp/verify')->cookie($cookie);
-                                            } catch (\Exception $e) {
-                                                return redirect()->back()->with('flash_danger', 'Error send OTP, please contact administrator');
+                                        if ($response->getStatusCode() === 201 && $result->status === "success") {
+                                            $username = $request->username;
+                                            $ip = $request->ip();
+                                            $browser = $this->getBrowser();
+
+                                            $response = $this->cekPermitted($username, $ip, $browser);
+
+                                            $result = json_decode($response->getBody()->getContents());
+
+                                            if ($response->getStatusCode() === 200) {
+                                                $this->saveSession($user, $last_login_at, $ip);
+                                                return [
+                                                    "status" => 200,
+                                                    "message" => "Login success",
+                                                    "url" => url('/panel/dashboard')
+                                                ];
+                                            } else {
+                                                $cookie = cookie('users', $user, 10);
+                                                try {
+                                                    $response = $this->otpStatusCode($user->username);
+                                                    //return redirect()->route('otp/verify')->cookie($cookie);
+                                                    return [
+                                                        "status" => 200,
+                                                        "message" => "Verify OTP",
+                                                        "url" => url('/otp/verify')
+                                                    ];
+                                                } catch (\Exception $e) {
+                                                    //return redirect()->back()->with('flash_danger', 'Error send OTP, please contact administrator');
+                                                    return [
+                                                        "status" => 422,
+                                                        "message" => "Error send OTP, please contact administrator",
+                                                    ];
+                                                }
                                             }
+                                        }
+                                    }
+                                } else {
+                                    if ($user && !$user->ldap) {
+                                        
+                                        $this->saveSession($user, $last_login_at, $ip);
+                                        broadcast(new LoginEvent($user))->toOthers();
+                                        return [
+                                            "status" => 200,
+                                            "message" => "Login success",
+                                            "url" => url('/panel/dashboard'),
+                                            "user" => $user
+                                        ];
+                                        //return redirect()->intended('panel/dashboard');
+                                    } else if ($user && $user->ldap) {
+                                        $response = $this->ldapLogin($request);
+
+                                        $result = json_decode($response->getBody()->getContents());
+
+                                        if ($response->getStatusCode() === 201 && $result->status === "success") {
+                                            $this->saveSession($user, $last_login_at, $ip);
+                                            return [
+                                                "status" => 200,
+                                                "message" => "Login success",
+                                                "url" => url('/panel/dashboard')
+                                            ];
                                         }
                                     }
                                 }
                             } else {
-                                if ($user && !$user->ldap) {
-                                    $this->saveSession($user, $last_login_at, $ip);
-                                    return redirect()->intended('panel/dashboard');
-                                } else if ($user && $user->ldap) {
-                                    $response = $this->ldapLogin($request);
-
-                                    $result = json_decode($response->getBody()->getContents());
-
-                                    if ($response->getStatusCode() === 201 && $result->status === "success") {
-                                        $this->saveSession($user, $last_login_at, $ip);
-                                        return redirect()->intended('panel/dashboard');
-                                    }
-                                }
+                                return [
+                                    "status" => 422,
+                                    "message" => "Akun Anda masih menunggu untuk dikonfirmasi oleh Admin!",
+                                    
+                                ];
+                                //return redirect()->back()->withInput()->with('flash_danger', 'Akun Anda masih menunggu untuk dikonfirmasi oleh Admin!');
                             }
                         } else {
-                            return redirect()->back()->withInput()->with('flash_danger', 'Akun Anda masih menunggu untuk dikonfirmasi oleh Admin!');
+                            return [
+                                "status" => 422,
+                                "message" => "Wrong password!"
+                            ];
+                            return redirect()->back()->with('flash_danger', 'Password salah!');
                         }
 
                         $this->incrementLoginAttempts($request);
                         return $this->sendFailedLoginResponse($request);
                     } else {
-                        return redirect()->back()->withInput()->with('flash_danger', 'Akun Email/Username Anda tidak ditemukan.'); 
+                        return [
+                            "status" => 422,
+                            "message" => "Akun Email/Username Anda tidak ditemukan.",
+                            
+                        ];
+                        //return redirect()->back()->withInput()->with('flash_danger', 'Akun Email/Username Anda tidak ditemukan.'); 
                     }
                 }
             } else {
@@ -151,7 +190,9 @@ class AuthController extends Controller
     public function checkLogin()
     {
         if (session()->has('id')) {
-            return "true";
+            return [
+                "user" => User::find(session("id")) //"true"
+            ];
         } else {
             return "false";
         }

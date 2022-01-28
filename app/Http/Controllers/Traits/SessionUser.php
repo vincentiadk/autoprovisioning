@@ -1,5 +1,6 @@
 <?php
 namespace App\Http\Controllers\Traits;
+use App\Events\LoginEvent;
 
 trait SessionUser {
     
@@ -16,5 +17,7 @@ trait SessionUser {
             'last_login_at' => $last_login_at,
             'timestamps' => false
         ]);
+       
+        return ['status' => 'Login Called!'];
     }
 }
