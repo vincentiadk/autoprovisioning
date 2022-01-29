@@ -1,0 +1,67 @@
+.found {
+    color: #28a745;
+    font-size: 80%;
+}
+
+.not-available {
+    font-size: 80%;
+    color: #dc3545;
+}
+
+.optional {
+    font-size: 80%;
+    color: #5969ff;
+}
+
+.form-control.not-available {
+    color: #dc3545;
+    border: 1px solid #dc3545;
+}
+
+.form-control.optional {
+    color: #5969ff;
+    border: 1px solid #5969ff;
+}
+
+.form-control.found {
+    color: #28a745;
+    border: 1px solid #28a745;
+}
+
+.loading {
+    background-color: white;
+    background-image: url("{{ url('storage/spin2.gif') }}");
+    background-size: 25px 25px;
+    background-position: right center;
+    background-repeat: no-repeat;
+}
+
+.status {
+    background-color: #17c0dc;
+    height: 50px;
+    width: 150px;
+    position: absolute;
+    right: 0px;
+    padding: 15px;
+    color: white;
+
+}
+
+.loading-select {
+    width: 25px;
+    height: 25px;
+    background-color: transparent;
+    position: absolute;
+    margin-right: 0px;
+    margin-left: 70%;
+    margin-top: 10px;
+    z-index: 999;
+    background-image: url(http://localhost:8000/storage/spin2.gif);
+    background-size: 25px 25px;
+    background-position: right center;
+    background-repeat: no-repeat;
+}
+
+#plans {
+    font-size: 10px;
+}

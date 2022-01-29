@@ -1,6 +1,6 @@
 <?php
 namespace App\Http\Controllers\Traits;
-use App\Events\LoginEvent;
+use App\Events\RealTimeMessage;
 
 trait SessionUser {
     
@@ -17,7 +17,8 @@ trait SessionUser {
             'last_login_at' => $last_login_at,
             'timestamps' => false
         ]);
-       
+
+        event(new RealTimeMessage($user->name . ' Login'));
         return ['status' => 'Login Called!'];
     }
 }

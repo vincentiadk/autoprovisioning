@@ -21,6 +21,8 @@
     <link rel="stylesheet" href="{{ asset('vendor/select2/css/select2.css') }}">
     <link rel="stylesheet" href="{{ asset('vendor/select2-bootstrap4-theme/select2-bootstrap4.css') }}">
     <link rel="stylesheet" href="{{ asset('css/terminal.css') }}">
+    <link rel="stylesheet" href="{{ asset('libs/css/validation.css') }}">
+    <script src="{{ asset('js/app.js') }}" defer></script>
     <script src=" {{ asset('vendor/jquery/jquery-3.3.1.min.js') }}"></script>
     <script src=" {{ asset('vendor/bootstrap/js/bootstrap.bundle.js') }}"></script>
     <script src=" {{ asset('vendor/slimscroll/jquery.slimscroll.js') }}"></script>
@@ -35,7 +37,7 @@
     <script src="{{ asset('vendor/toastr/toastr.min.js') }}"></script>
     <script src="{{ asset('vendor/select2/js/select2.min.js') }}"></script>
     <script src="{{ asset('js/jquery-pjax.js') }}"></script>
-
+    
     <style>
     .btn {
         margin: 0px 3px;
@@ -56,6 +58,14 @@ function getSearchParams(k) {
     })
     return k ? p[k] : p;
 }
+
+function checkTaskEvery5sec() {
+    checkTaskId($('#task_id').text());
+    if ($('#div_status').text() != "closed" && $('#div_status').text() != "submitted" && $('#div_status').text() != "pending") {
+        setTimeout(checkTaskEvery5sec, 5000);
+    }
+}
+
 var simpanResponse;
 
 /*function goToPage(page) {
@@ -85,14 +95,11 @@ function simpan() {
         setUnavailable("description_access_lbl", "description_access", "Please entry description access");
     }
     if ($('#description_backhaul_1').val() == "") {
-        setUnavailable("description_backhaul_1_lbl", "description_backhaul_1", "Please entry description backhaul 2");
+        setUnavailable("description_backhaul_1_lbl", "description_backhaul_1", "Please entry description backhaul 1");
     }
     if ($('#description_backhaul_2').val() == "") {
         setUnavailable("description_backhaul_2_lbl", "description_backhaul_2", "Please entry description backhaul 2");
     }
-    //if ($('#access_description').val() == "") {
-    //    setUnavailable("access_description_lbl", "access_description", "Please entry access description");
-    //}
     if ($('#vcid').val() == "") {
         setUnavailable("vcid_access_lbl", "vcid", "Please entry VCID/VSI ID");
         setAvailable("vcid_backhaul_1_lbl", "vcid", "");
@@ -121,6 +128,9 @@ function simpan() {
     if ($('#vlan_access').val() == "") {
         setUnavailable("vlan_access_lbl", "vlan_access", "Please entry VLAN access");
     }
+    if ($('#hidden_port_access').val() == "") {
+        setUnavailable("port_access_lbl", "input_port_access", "Please entry port access");
+    }
     var url = $("#url").val();
     var formData = new FormData($('#form_data')[0]);
     var mvar = "";
@@ -129,7 +139,7 @@ function simpan() {
         $('#validasi_content').append('<li>' + $(this).html() + '</li>');
         mvar += $(this).html();
     });
-    if(mvar != "") {
+    if (mvar != "") {
         $('#modal_validation').modal('show');
     }
     if (mvar == "") {
@@ -160,8 +170,11 @@ function simpan() {
                             $('#' + key).val(value);
                         });
                     }
-                    if(response.url != "") {
-                        window.open(response.url, "_self");
+                    if (response.url != "") {
+                        let a = document.createElement('a');
+                        a.target = '_self';
+                        a.href = "{{url('')}}" + "/" + response.url;
+                        a.click();
                     }
                 } else if (response.status == 422) {
                     $.each(response.error, function(i, val) {
@@ -441,9 +454,9 @@ function checkTaskId(task_id) {
             dataType: 'json',
             success: function(response) {
                 $('#div_status').html(response.status);
-                if (response.status == 'submitted' || response.status == 'executing' || response.status ==
-                    'done') {
+                if (response.status != 'submitted' && response.status != 'pending') {
                     $('input').attr('readonly', true);
+                    $('textarea').attr('readonly', true);
                     $('.select2').attr('disabled', true);
                 } else {
                     $('#btn_confirm_task').show();
@@ -510,6 +523,13 @@ function allowNumbersOnly(e) {
     }
 }
 
+function allowChar(e, id) {
+    const reg = /\`|\~|\!|\@|\#|\$|\%|\^|\&|\*|\(|\)|\+|\=|\[|\{|\]|\}|\||\\|\'|\<|\,|\.|\>|\?|\""|\;|\:|\s/g;
+    if (e.key.replace(reg, "") == "") {
+        e.preventDefault();
+    }
+}
+
 function loadScheduler(node, id, oldScheduler = '') {
     var div = '<div class="loading-select" id="div_' + id + '"></div>';
     $('#' + id).prev().append(div);
@@ -535,44 +555,24 @@ function loadScheduler(node, id, oldScheduler = '') {
 var validation;
 
 function checkAll() {
-    //validation = 0;
     $('#div_vsiname').hide();
     $('#select_port_access').hide();
     $('#select_port_backhaul_1').hide();
     $('#select_port_backhaul_2').hide();
-    /*checkDescription('service_description', 'service_description_lbl');
-    checkDescription('access_description', 'access_description_lbl');
-
-    checkNode('node_access_name', 'node_access_lbl', 'node_access', $('#node_access_scheduler').val());
-    checkNode('node_backhaul_1_name', 'node_backhaul_1_lbl', 'node_backhaul_1', $('#node_backhaul_1_scheduler').val());
-    checkNode('node_backhaul_2_name', 'node_backhaul_2_lbl', 'node_backhaul_2', $('#node_backhaul_2_scheduler').val());
-
-    checkVcid('vcid', 'vcid_access_lbl');
-    checkVcid('vcid', 'vcid_backhaul_1_lbl');
-    checkVcid('vcid', 'vcid_backhaul_2_lbl');
-
-    checkInterface('port_access', 'vlan_access', 'port_access_lbl', 'vlan_access_lbl', 'node_access_name');
-    checkInterface('port_backhaul_1', 'vlan_backhaul_1', 'port_backhaul_1_lbl', 'vlan_backhaul_1_lbl',
-        'node_backhaul_1_name');
-    checkInterface('port_backhaul_2', 'vlan_backhaul_2', 'port_backhaul_2_lbl', 'vlan_backhaul_2_lbl',
-        'node_backhaul_2_name');
-
-    checkQosBefore('qos_access', 'qos_access_lbl', 'node_access_name');
-    checkQosBefore('qos_backhaul_1', 'qos_backhaul_1_lbl', 'node_backhaul_1_name');
-    checkQosBefore('qos_backhaul_2', 'qos_backhaul_2_lbl', 'node_backhaul_2_name');
-
-    checkScheduler('node_access_scheduler');
-    checkScheduler('node_backhaul_1_scheduler');
-    checkScheduler('node_backhaul_2_scheduler');
-    */
+    if($('#div_status').text().includes("submitted") || $('#div_status').text().includes("pending")) {
+        checkNode("node_access_name", "node_access_lbl", "node_access");
+        checkNode("node_backhaul_1_name", "node_backhaul_1_lbl", "node_backhaul_1");
+        checkNode("node_backhaul_2_name", "node_backhaul_2_lbl", "node_backhaul_2");
+    }
 }
 
 function checkDescription(id, lbl) {
     $('#' + id).addClass('loading');
+    var name = id.replace('description_', '');
     if ($('#' + id).val().length < 6) {
         setUnavailable(lbl, id, "Description Min 6 character");
     } else {
-        setAvailable(lbl, id, "OK");
+        setAvailable(lbl, id, "Description "+name+" OK");
     }
     $('#' + id).removeClass('loading');
 }
@@ -594,7 +594,7 @@ function checkNode(id, lbl, textbox, oldScheduler = '') {
                     $('#node_manufacture').val(response.manufacture);
                 }
                 if ($('#node_manufacture').val() == response.manufacture) {
-                    setAvailable(lbl, id, "Found Node : " + response.ip + " manufacture " + response
+                    setAvailable(lbl, id, "IP : " + response.ip + ", manufacture : " + response
                         .manufacture);
                     $('#' + textbox).val(response.ip);
 
@@ -642,6 +642,8 @@ function checkNode(id, lbl, textbox, oldScheduler = '') {
             }
             if (name == "access") {
                 checkAccess();
+            } else {
+                checkBackhaul(name.split("_")[1], id);
             }
         },
         complete: function() {
@@ -715,7 +717,7 @@ function checkVcid(id, lbl, vcidOrVsiname) {
                 }
                 if ($('#vsiname').val() != "" && $('#node_manufacture').val() == "HUAWEI") {
                     setAvailable('vsiname_' + name + '_lbl', 'vsiname', "VSI-Name " + name + " available");
-                } else if($('#vsiname').val() == "" && $('#node_manufacture').val() == "HUAWEI") {
+                } else if ($('#vsiname').val() == "" && $('#node_manufacture').val() == "HUAWEI") {
                     setUnavailable('vsiname_' + name + '_lbl', 'vsiname', "Please entry VSI-Name " + name);
                 }
                 $('#vlan_' + name)
@@ -794,41 +796,7 @@ function checkVcid(id, lbl, vcidOrVsiname) {
                     setAvailable('port_' + name + "_lbl", 'select_port_' + name, 'Port ' + name +
                         " already configured");
                 } else {
-                    checkAccess()
-                    /*$('#vlan_' + name)
-                        .val(response.vlan)
-                        .attr("readonly", true);
-                    $('#input_port_' + name)
-                        .val(response.port)
-                        .attr("readonly", true);
-                    var newOption = new Option(response.port, response.port, true, true);
-                    $("#select_port_" + name)
-                        .append(newOption)
-                        .trigger("change")
-                        .select2({
-                            disabled: 'readonly'
-                        });
-                    setUnavailable(lbl, id, "Node " + name +
-                        " already configured and unavailable for VCID = " + response.vcid);
-                    if (vcidOrVsiname == "vcid" && response.manufacture == 'HUAWEI') {
-                        $('#vsiname').val(response.description).show();
-                    } else if (vcidOrVsiname == "vsiname") {
-                        $('#vcid').val(response.vcid);
-                        setUnavailable('vsiname_' + name + '_lbl', 'vsiname',
-                        "VSI-Name already configured");
-                    }
-                    setUnavailable('vsiname_' + name + '_lbl', 'vsiname', "VSI-Name " + name +
-                        " already configured and unavailable");
-                    setUnavailable('vlan_' + name + "_lbl", 'vlan_' + name, 'Vlan ' + name +
-                        " already configured and unavailable, please change VCID/VSI name to use this vlan"
-                        );
-                    setUnavailable('port_' + name + "_lbl", 'input_port_' + name, 'Port ' + name +
-                        " already configured and unavailable, please change VCID/VSI name to use this port"
-                        );
-                    setUnavailable('port_' + name + "_lbl", 'select_port_' + name, 'Port ' + name +
-                        " already configured and unavailable, please change VCID/VSI name to use this port"
-                        );
-                    //checkInterface(name);*/
+                    checkAccess();
                 }
             }
             if (!$('#node_' + name + '_lbl').hasClass("found") && name != "access") {
@@ -867,7 +835,7 @@ function checkAccess() {
         setUnavailable('vcid_access_lbl', 'vcid', "Please entry VCID/VSI ID access");
     }
     if (vcid.length < 4) {
-        setUnavailable('vcid_access_lbl', 'vcid', "VCID/VSI ID min 4 characters");
+        setUnavailable('vcid_access_lbl', 'vcid', "VCID/VSI ID access min 4 characters");
     }
     if (node == "" || node == null) {
         setUnavailable('vcid_access_lbl', 'vcid', "Please select node access");
@@ -895,38 +863,212 @@ function checkAccess() {
                     var vcidLbl = "VCID";
                 }
                 if (response.statusVcid != 200 && vcid != "" && vcid.length > 3) {
-                    setAvailable('vcid_access_lbl', 'vcid', vcidLbl + " access available");
+                    setAvailable('vcid_access_lbl', 'vcid', "New " + vcidLbl + " access");
                 } else if (response.statusVcid == 200 && vcid != "" && vcid.length > 3) {
-                    var msgVcid = vcidLbl + " access configured with " + response.interfaces.total +
-                        " interfaces ";
-                    if (response.interfaces.total == 1) {
-                        msgVcid += response.interfaces.result[0].name;
+                    var msgVcid = vcidLbl + " access already configured with " + response.interfaces.total +
+                        " interfaces";
+                    if (response.statusPort == 200) {
+                        msgVcid += ", Port " + port + " and VLAN " + vlan + " not available";
+                    } else {
+                        msgVcid += ", Port " + port + " and VLAN " + vlan + " available";
                     }
-                    setAvailable('vcid_access_lbl', 'vcid', msgVcid);
                 }
-                
+
                 if (response.statusPort == 200 && port != "") {
-                    if(response.vcid == vcid) {
-                        setUnavailable('port_access_lbl', 'input_port_access', "Interfaces " + response
-                            .interface + " already configured with " + vcidLbl + " = " + response.vcid);
-                        setUnavailable('port_access_lbl', 'select_port_access', "Interfaces " + response
-                            .interface + " already configured with " + vcidLbl + " = " + response.vcid);
+                    if (response.vcid == vcid) {
+                        setUnavailable('port_access_lbl', 'input_port_access', "Port and VLAN " + response
+                            .interface + " already configured with entered " + vcidLbl + " = " +
+                            response.vcid + ", please use different VCID or PORT");
+                        setUnavailable('port_access_lbl', 'select_port_access', "Port and VLAN " + response
+                            .interface + " already configured with entered " + vcidLbl + " = " +
+                            response.vcid + ", please use different VCID or PORT");
                         setUnavailable('vcid_access_lbl', 'vcid', msgVcid);
+                    } else {
+                        setAvailable('port_access_lbl', 'input_port_access', "Port and VLAN " + response
+                            .interface + " already configured with " + vcidLbl + " = " + response.vcid);
+                        setAvailable('port_access_lbl', 'select_port_access', "Port and VLAN " + response
+                            .interface + " already configured with " + vcidLbl + " = " + response.vcid);
+                        setAvailable('vcid_access_lbl', 'vcid', msgVcid);
                     }
                 } else if (response.statusPort != 200 && port != "") {
                     setAvailable('port_access_lbl', 'input_port_access', "Port access available");
                     setAvailable('port_access_lbl', 'select_port_access', "Port access available");
+                    setAvailable('vcid_access_lbl', 'vcid', msgVcid);
                 }
                 if (response.statusVlan == 200 && vlan != "" && vlan.length > 2) {
-                    setUnavailable('vlan_access_lbl', 'vlan_access', "Interfaces " + response.interface +
-                        " already configured with " + vcid + " = " + response.vcid);
+                    if (response.vcid == vcid) {
+                        setUnavailable('vlan_access_lbl', 'vlan_access', "Port and VLAN " + response
+                            .interface +
+                            " already configured with entered " + vcidLbl + " = " + vcid +
+                            ", please use different VCID or VLAN!");
+                    } else {
+                        setAvailable('vlan_access_lbl', 'vlan_access', "Port and VLAN " + response
+                            .interface +
+                            " already configured with " + response.vcid);
+                    }
                 } else if (response.statusVlan != 200 && vlan != "" && vlan.length > 2) {
                     setAvailable('vlan_access_lbl', 'vlan_access', "VLAN access available");
+                }
+                if (response.description_subinterface != "" && (response.vcid != vcid)) {
+                    $('#description_access').val("TELKOMSEL NODE-B ACCESS");
+                    setAvailable("description_access_lbl", "description_access",
+                        "New description/service access");
+                } else if (response.description_subinterface != "" && (response.vcid == vcid)) {
+                    $('#description_access').val(response.description_subinterface);
+                    setAvailable("description_access_lbl", "description_access",
+                        "Description/service access OK");
+                } else {
+                    $('#description_access').val("TELKOMSEL NODE-B ACCESS");
+                    setAvailable("description_access_lbl", "description_access",
+                        "New description/service access");
                 }
             }
         },
         complete: function() {
-            $('#div_' + id).remove();
+            //$('#div_' + id).remove();
+        }
+    });
+}
+
+function checkBackhaul(sec, id, lastFunction = "nothing") {
+    var manufacture = $('#node_manufacture').val();
+    var port = "";
+    var vlan = $('#vlan_backhaul_' + sec).val();
+    var vcid = $('#vcid').val();
+    var node = $('#node_backhaul_' + sec + '_name').val();
+    var description = $('#description_backhaul_' + sec).val();
+    if (manufacture == "HUAWEI") {
+        port = $('#select_port_backhaul_' + sec).val();
+    } else {
+        port = $('#input_port_backhaul_' + sec).val();
+    }
+    $('#hidden_port_backhaul_' + sec).val(port);
+    if (port == "") {
+        setOptional('port_backhaul_' + sec + '_lbl', 'input_port_backhaul_' + sec, "Please entry port backhaul " + sec);
+        setOptional('port_backhaul_' + sec + '_lbl', 'select_port_backhaul_' + sec, "Please entry port backhaul " +
+            sec);
+    }
+    if (vlan == "") {
+        setOptional('vlan_backhaul_' + sec + '_lbl', 'vlan_backhaul_' + sec, "Please entry VLAN backhaul " + sec);
+    }
+    if (vlan.length < 3 && vlan != "") {
+        setUnavailable('vlan_backhaul_' + sec + '_lbl', 'vlan_backhaul_' + sec, "VLAN backhaul " + sec +
+            " min 3 characters");
+    }
+    if (vcid == "") {
+        setOptional('vcid_backhaul_' + sec + '_lbl', 'vcid', "Please entry VCID/VSI ID backhaul " + sec);
+    }
+    if (vcid.length < 4) {
+        setUnavailable('vcid_backhaul_' + sec + '_lbl', 'vcid', "VCID/VSI ID backhaul " + sec + " min 4 characters");
+    }
+    if (node == "" || node == null) {
+        setUnavailable('vcid_backhaul_' + sec + '_lbl', 'vcid', "Please select node backhaul " + sec);
+        setUnavailable('node_backhaul_' + sec + '_lbl', 'node_backhaul_' + sec + '_name',
+            "Please select node backhaul " + sec);
+    }
+    if (description == "") {
+        setUnavailable('description_backhaul_' + sec + '_lbl', 'description_backhaul_' +
+            sec, "Please entry description/service backhaul " + sec);
+    }
+    if (description.length < 6 && description != "") {
+        setUnavailable('description_backhaul_' + sec + '_lbl', 'description_backhaul_' +
+            sec, "Description/service backhaul " + sec + " min 6 characters");
+    }
+
+    var div = '<div class="loading-select" id="div_' + id + '"></div>';
+    $.ajax({
+        url: "{{ url('panel/metro/check-backhaul') }}" + '?name=' + node +
+            '&vlan=' + $('#vlan_backhaul_' + sec).val() +
+            '&port=' + port +
+            '&vcid=' + $('#vcid').val() +
+            '&vsiname=' + $('#vsiname').val() +
+            '&manufacture=' + manufacture,
+        contentType: 'application/json',
+        dataType: 'json',
+        beforeSend: function() {
+            //$('#' + id).prev().prev().append(div);
+        },
+        success: function(response) {
+            if (node != "") {
+                if (manufacture == "HUAWEI") {
+                    var vcidLbl = "VSI ID";
+                } else {
+                    var vcidLbl = "VCID";
+                }
+                var msgVcid = vcidLbl + " backhaul " + sec;
+                if (response.statusVcid != 200 && vcid != "" && vcid.length > 3 && (node == "" || node ==
+                        null)) {
+                    setAvailable('vcid_backhaul_' + sec + '_lbl', 'vcid', vcidLbl + " backhaul " + sec +
+                        " available");
+                } else if (response.statusVcid == 200 && vcid != "" && vcid.length > 3 && (node == "" ||
+                        node == null)) {
+                    msgVcid += " configured ";
+                    setAvailable('vcid_backhaul_' + sec + '_lbl', 'vcid', msgVcid);
+                }
+
+                if (response.statusPort == 200 && port != "") {
+                    //if (response.vcid == vcid) {
+                    setAvailable('port_backhaul_' + sec + '_lbl', 'input_port_backhaul_' + sec,
+                        "Port and VLAN " + response
+                        .interface + " already configured with " + vcidLbl + " = " + response.vcid);
+                    setAvailable('port_backhaul_' + sec + '_lbl', 'select_port_backhaul_' + sec,
+                        "Port and VLAN " + response
+                        .interface + " already configured with " + vcidLbl + " = " + response.vcid);
+                    setAvailable('vcid_backhaul_' + sec + '_lbl', 'vcid', msgVcid + " configured with " + response.interface);
+                    $('#vcid').val(response.vcid);
+
+                    if (manufacture == 'HUAWEI') {
+                        $('#vsiname').val(response.vsiname);
+                        setAvailable('vsiname_backhaul_' + sec + '_lbl', 'vsiname', "VSI NAME backhaul " +
+                            sec + " found");
+                    }
+                    //checkAccess();
+                } else if (response.statusPort != 200 && port != "") {
+                    setAvailable('port_backhaul_' + sec + '_lbl', 'input_port_backhaul_' + sec,
+                        "Port backhaul " + sec + " available");
+                    setAvailable('port_backhaul_' + sec + '_lbl', 'select_port_backhaul_' + sec,
+                        "Port backhaul " + sec + " available");
+                    /*if(lastFunction != "checkPort") {
+                        $('#description_backhaul_' + sec).val("");
+                        setUnavailable("description_"+name+"_lbl", "description_" + name, "Please entry description "+ name);
+                    }*/
+                    if(vcid != "" && vcid.length  >= 4) {
+                        setAvailable('vcid_backhaul_' + sec + '_lbl', 'vcid', msgVcid + " available");
+                        setAvailable('vsiname_backhaul_' + sec + '_lbl', 'vsiname', "VSI NAME backhaul " +
+                                sec + " available");
+                    }
+                }
+                if (response.statusVlan == 200 && vlan != "" && vlan.length > 2) {
+                    setAvailable('vlan_backhaul_' + sec + '_lbl', 'vlan_backhaul_' + sec, "Port and VLAN " +
+                        response.interface +
+                        " already configured with " + vcidLbl + " = " + response.vcid);
+                    if (response.description_subinterface != "") {
+                        $('#description_backhaul_' + sec).val(response.description_subinterface);
+                        setAvailable("description_backhaul_" + sec + "_lbl", "description_backhaul_" + sec,
+                            "Description/service backhaul " + sec + " OK");
+                    } else {
+                        $('#description_backhaul_' + sec).val("TELKOMSEL NODE-B " + vlan);
+                        setAvailable("description_backhaul_" + sec + "_lbl", "description_backhaul_" + sec,
+                            "New description/service backhaul " + sec + " OK");
+                    }
+                } else if (response.statusVlan != 200 && vlan != "" && vlan.length > 2) {
+                    setAvailable('vlan_backhaul_' + sec + '_lbl', 'vlan_backhaul_' + sec,
+                        "VLAN access available");
+                    $('#description_backhaul_' + sec).val("TELKOMSEL NODE-B " + vlan);
+                    setAvailable("description_backhaul_" + sec + "_lbl", "description_backhaul_" + sec,
+                        "New description/service backhaul " + sec + " OK");
+                }
+            }
+            // $('#div_'+id).parent().remove();
+        },
+        complete: function(response) {
+            if (response.responseJSON.vcid != vcid && vcid != "" && response.responseJSON.statusVlan == 200) {
+                Toast.fire({
+                        icon: 'warning',
+                        title: 'VCID/VSI ID' + ' access changed from ' + vcid + ' to ' + response.responseJSON.vcid
+                    });
+            }
+            checkAccess();
         }
     });
 }
@@ -947,7 +1089,7 @@ function checkQosBefore(id, lbl, node) {
         qosType = "bakhaul 2";
     }
     var manufacture = $('#node_' + name + '_manufacture').val();
-    if($('#qos_'+name+'_install').val() == 1) {
+    if ($('#qos_' + name + '_install').val() == 1) {
         $.ajax({
             url: "{{ url('panel/metro/check-qos') }}" + '?node=' + $('#' + node).val() +
                 '&qos=' + $('#' + id).val() +
@@ -973,16 +1115,20 @@ function checkQosBefore(id, lbl, node) {
     }
 }
 
-function checkPort(name) {
-    var port = '';
-    if ($('#node_manufacture') == 'HUAWEI') {
+function checkPort(name, id) {
+    var port = '',
+        backhaul = "false";
+    if ($('#node_manufacture').val() == 'HUAWEI') {
         port = $("#select_port_" + name).val();
     } else {
         port = $("#input_port_" + name).val();
     }
+    if (name.includes("backhaul")) {
+        backhaul = "true";
+    }
     $.ajax({
         url: "{{ url('panel/metro/check-port') }}" + '?port=' + port +
-            '&name=' + $("#node_" + name + '_name').val(),
+            '&name=' + $("#node_" + name + '_name').val() + '&backhaul=' + backhaul,
         dataType: 'json',
         beforeSend: function() {
             $('#select_port_' + name).addClass('loading');
@@ -996,19 +1142,26 @@ function checkPort(name) {
                 } else {
                     $('#port_' + name + '_lbl_top').html('Port ' + name.replace("_", " "));
                 }
+                /*if (backhaul == "true") {
+                    $('#description_' + name).val(response.description);
+                    setAvailable("description_"+name+"_lbl", "description_" + name, "Description "+ name + " OK");
+                }*/
                 $("#select_port_" + name).val(response.parent);
                 $("#input_port_" + name).val(response.parent);
                 $("#hidden_port_" + name).val(response.parent);
             } else {
                 $('#port_' + name + '_lbl_top').html('Port ' + name.replace("_", " "));
                 $("#hidden_port_" + name).val(port);
+                /*if (backhaul == "true") {
+                    $('#description_' + name).val("");
+                }*/
             }
         },
         complete: function() {
             $('#select_port_' + name).removeClass('loading');
             $('#input_port_' + name).removeClass('loading');
             if (name != "access") {
-                checkInterface(name);
+                checkBackhaul(name.split("_")[1], id, "checkPort");
             } else {
                 checkAccess();
             }
@@ -1037,13 +1190,13 @@ function checkInterface(name) {
         setUnavailable(lbl_vlan, vlan, "Please choose node " + name.replace('_', ' '));
     } else if (portVal == '' || portVal == null) {
         if ($('#input_' + port).css('display') == 'block') {
-            if(name != "access") {
+            if (name != "access") {
                 setOptional(lbl_port, port, "Please entry port " + name.replace('_', ' '));
             } else {
                 setUnavailable(lbl_port, port, "Please entry port " + name.replace('_', ' '));
             }
         } else {
-            if(name != "access") {
+            if (name != "access") {
                 setOptional(lbl_port, port, "Please entry port " + name.replace('_', ' '));
             } else {
                 setUnavailable(lbl_port, port, "Please entry port " + name.replace('_', ' '));
@@ -1085,7 +1238,7 @@ function checkInterface(name) {
                             " available");
                     } else {
                         setAvailable('vcid_' + name + "_lbl", 'vcid_' + name, "VCID " + name +
-                        " available");
+                            " available");
                     }
                     setAvailable(lbl_port, port, response.message);
                     setAvailable(lbl_vlan, vlan, response.message);

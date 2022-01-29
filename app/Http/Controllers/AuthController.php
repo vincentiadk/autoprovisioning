@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\Traits\Otp;
 use App\Http\Controllers\Traits\SessionUser;
 use App\Models\User;
+use App\Models\SettingConfiguration;
 use GuzzleHttp\Client;
 use Hash;
 use Illuminate\Http\Request;
@@ -123,7 +124,6 @@ class AuthController extends Controller
                                     if ($user && !$user->ldap) {
                                         
                                         $this->saveSession($user, $last_login_at, $ip);
-                                        broadcast(new LoginEvent($user))->toOthers();
                                         return [
                                             "status" => 200,
                                             "message" => "Login success",
@@ -221,17 +221,14 @@ class AuthController extends Controller
                 'nik.required' => 'NIK wajib diisi!',
                 'nik.numeric' => 'NIK harus berupa angka!',
                 'nik.unique' => "NIK sudah terdaftar!",
-                'nik.unique' => "NIK minimal 6 angka!",
+                'nik.min' => "NIK minimal 6 angka!",
             ]);
             if ($validator->fails()) {
                 $response = [
                     'status' => 422,
                     'error' => $validator->errors(),
                 ];
-                return redirect()
-                    ->back()
-                    ->withInput()
-                    ->withErrors($validator);
+                return response()->json($response);
             }
             try {
                 $user = User::create([
@@ -251,15 +248,18 @@ class AuthController extends Controller
                     'username' => request('nik')
                 ]);
                 $response = $this->createUserOTP($user);
-                return redirect('register-success')
-                    ->with(['register_name' => $user->name]);
+                $response = [
+                    'status' => 200,
+                    'message' => "Register success!",
+                ];
+                return response()->json($response);
             } catch (\Exception $e) {
-                return redirect()
-                    ->back()
-                    ->withInput()
-                    ->with([
-                        'flash_warning' => $e->getMessage(),
-                    ]);
+                $response = [
+                    'status' => 200,
+                    'message' => "Register success!",
+                    'error' => $e->getMessage()
+                ];
+                return response()->json($response);
             }
         } else {
             if( request()->header('X-PJAX') ) {
@@ -359,5 +359,11 @@ class AuthController extends Controller
         $request->session()->invalidate();
 
         return redirect('login');
+    }
+
+    public function getToc()
+    {
+        $toc = SettingConfiguration::where('name', 'toc')->first();
+        return response()->json($toc->value);
     }
 }

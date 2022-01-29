@@ -18,24 +18,43 @@
         window.parent.postMessage("resize", "*");
     }
     </script>
-    
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
-    <!--script src="{{ asset('js/jquery-pjax.js') }}"></script-->
-    <script>
-    // $(document).pjax('.page', '#pjax-container');
-    </script>
 
 </head>
 
 <body translate="no">
+    <style>
+    .modal-title {
+        max-width: 100%;
+        margin: 0 0 .4em;
+        padding: 0;
+        color: #595959;
+        font-size: 1.2em;
+        font-weight: 400;
+        text-align: center;
+        text-transform: none;
+    }
+
+    .modal-content {
+        z-index: 1;
+        justify-content: left;
+        margin: 0;
+        padding: 0;
+        color: #545454;
+        font-size: 0.8em;
+        font-weight: 200;
+        line-height: normal;
+        text-align: left;
+        word-wrap: break-word;
+    }
+    </style>
     <div id="app">
-        <login-form></login-form>
+        <router-view>
+        </router-view>
+
     </div>
 </body>
-<script src="{{ asset('js/app.js') }}" defer></script>
-<!--<body translate="no" id="pjax-container">
-    @include($data['content'], $data)
-</body>
--->
+<script src="{{ asset('js/app.js') }}"></script>
 
 </html>

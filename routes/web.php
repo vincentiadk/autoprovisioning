@@ -9,10 +9,7 @@ Route::get('register-success', 'AuthController@registerSuccess');
 Route::get('logout', 'AuthController@logout');
 Route::get('profile', 'UserController@profile');
 Route::get('auth/check-login', 'AuthController@checkLogin');
-
-Route::get('/chat', 'ChatsController@index');
-Route::get('messages', 'ChatsController@fetchMessages');
-Route::post('messages', 'ChatsController@sendMessage');
+Route::get('toc', 'AuthController@getToc');
 
 Route::prefix('otp')->group(function() {
     Route::get('telegram', 'OtpController@showOtpTelegram');
