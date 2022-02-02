@@ -1138,7 +1138,7 @@ function checkPortValue(){
                 setUnavailable("port_backhaul_1_lbl", "select_port_backhaul_1", "Port backhaul 1 can not be same as port access");
             } else {
                 setUnavailable("port_access_lbl", "input_port_access", "Port access can not be same as port backhaul 1");
-                setUnavailable("port_backhaul_1_lbl", "input_port_backhaul_1", "Port backhaul 1can not be same as port access");
+                setUnavailable("port_backhaul_1_lbl", "input_port_backhaul_1", "Port backhaul 1 can not be same as port access");
             }
         }
         
@@ -1172,10 +1172,10 @@ function checkPortValue(){
         if (port2 == port) {
             if($('#node_manufacture').val() == 'HUAWEI') {
                 setUnavailable("port_backhaul_2_lbl", "select_port_backhaul_2", "Port backhaul 2 can not be same as port access");
-                setUnavailable("port_access_lbl", "select_port_access_2", "Port access can not be same as port backhaul 2");
+                setUnavailable("port_access_lbl", "select_port_access", "Port access can not be same as port backhaul 2");
             } else {
                 setUnavailable("port_backhaul_2_lbl", "input_port_backhaul_2", "Port backhaul 2 can not be same as port access");
-                setUnavailable("port_access_lbl", "input_port_access_2", "Port access can not be same as port backhaul 2");
+                setUnavailable("port_access_lbl", "input_port_access", "Port access can not be same as port backhaul 2");
             }
         }
     }
