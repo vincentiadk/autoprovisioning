@@ -5338,6 +5338,35 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
+/***/ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5[0].rules[0].use[0]!./node_modules/vue-loader/lib/index.js??vue-loader-options!./resources/js/components/LoginNotification.vue?vue&type=script&lang=js&":
+/*!************************************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/babel-loader/lib/index.js??clonedRuleSet-5[0].rules[0].use[0]!./node_modules/vue-loader/lib/index.js??vue-loader-options!./resources/js/components/LoginNotification.vue?vue&type=script&lang=js& ***!
+  \************************************************************************************************************************************************************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+//
+//
+//
+//
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
+  props: ['user'],
+  methods: {
+    checkCurrentLogin: function checkCurrentLogin() {
+      this.$emit('loginevent', {
+        user: this.user
+      });
+      console.log('test');
+    }
+  }
+});
+
+/***/ }),
+
 /***/ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5[0].rules[0].use[0]!./node_modules/vue-loader/lib/index.js??vue-loader-options!./resources/js/components/RegisterForm.vue?vue&type=script&lang=js&":
 /*!*******************************************************************************************************************************************************************************************************************!*\
   !*** ./node_modules/babel-loader/lib/index.js??clonedRuleSet-5[0].rules[0].use[0]!./node_modules/vue-loader/lib/index.js??vue-loader-options!./resources/js/components/RegisterForm.vue?vue&type=script&lang=js& ***!
@@ -5485,32 +5514,47 @@ __webpack_require__.r(__webpack_exports__);
     formSubmit: function formSubmit(e) {
       e.preventDefault();
       var currentObj = this;
-      axios.post("/register", {
-        nama: this.nama,
-        email: this.email,
-        password: this.password,
-        password_confirmation: this.password_confirmation,
-        phone_number: this.phone_number,
-        nik: this.nik,
-        regional: this.regional,
-        _token: this.csrf
-      }).then(function (response) {
-        if (response.data.status == 200) {
-          currentObj.resetInput();
-          currentObj.$parent.showDialog("success", "Register Success", "Please check your email for activation", 0);
-        } else if (response.data.status == 422) {
-          var error = "<ul>";
-          $.each(response.data.error, function (i, val) {
-            error += "<li>" + val + "</li>";
-          });
-          error += "</ul>";
-          currentObj.$parent.showDialog("warning", "Check your input!", error, 30000);
-        } else {
-          currentObj.$parent.showDialog("error", "Register Failed", "Server Error!", 10000);
-        }
-      })["catch"](function (error) {
-        currentObj.output = error;
-      });
+
+      if (currentObj.$refs.toc.checked == false) {
+        currentObj.$parent.$fire({
+          title: "Accept Terms And Conditions!",
+          html: "You have not accept terms and conditions yet",
+          type: "error",
+          allowOutsideClick: false,
+          confirmButtonText: "Please, show me"
+        }).then(function (result) {
+          if (result.value) {
+            currentObj.openToc(e);
+          }
+        });
+      } else {
+        axios.post("/register", {
+          nama: this.nama,
+          email: this.email,
+          password: this.password,
+          password_confirmation: this.password_confirmation,
+          phone_number: this.phone_number,
+          nik: this.nik,
+          regional: this.regional,
+          _token: this.csrf
+        }).then(function (response) {
+          if (response.data.status == 200) {
+            currentObj.resetInput();
+            currentObj.$parent.$frie("success", "Register Success", "Please check your email for activation", 0);
+          } else if (response.data.status == 422) {
+            var error = "<ul>";
+            $.each(response.data.error, function (i, val) {
+              error += "<li>" + val + "</li>";
+            });
+            error += "</ul>";
+            currentObj.$parent.showDialog("warning", "Check your input!", error, 30000);
+          } else {
+            currentObj.$parent.showDialog("error", "Register Failed", "Server Error!", 10000);
+          }
+        })["catch"](function (error) {
+          currentObj.output = error;
+        });
+      }
     },
     openToc: function openToc(e) {
       e.preventDefault();
@@ -5567,9 +5611,12 @@ vue__WEBPACK_IMPORTED_MODULE_1__["default"].use(vue_router__WEBPACK_IMPORTED_MOD
  *
  * Eg. ./components/ExampleComponent.vue -> <example-component></example-component>
  */
-//const files = require.context('./', true, /\.vue$/i)
-//files.keys().map(key => Vue.component(key.split('/').pop().split('.')[0], files(key).default))
-//Vue.component('example-component', require('./components/ExampleComponent.vue').default);
+
+var files = __webpack_require__("./resources/js sync recursive \\.vue$/");
+
+files.keys().map(function (key) {
+  return vue__WEBPACK_IMPORTED_MODULE_1__["default"].component(key.split('/').pop().split('.')[0], files(key)["default"]);
+}); //Vue.component('example-component', require('./components/ExampleComponent.vue').default);
 
 /**
  * Next, we will create a fresh Vue application instance and attach it to
@@ -5608,31 +5655,42 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_1__["default"]({
         });
       }
     }
+  },
+  created: function created() {
+    var _this = this;
+
+    Echo["private"]("App.Models.User." + document.querySelector("#loginUserId").value).notification(function (notification) {
+      switch (notification.event) {
+        case "login":
+          _this.$fire({
+            title: notification.message,
+            html: "You will be automatically logout",
+            type: "warning",
+            allowOutsideClick: false,
+            confirmButtonText: "OK"
+          }).then(function (result) {
+            if (result.value) {
+              var a = document.createElement("a");
+              a.target = "_self";
+              a.href = '/login';
+              a.click();
+            }
+          });
+
+          break;
+
+        case "notification":
+          //append new notification here
+          break;
+
+        default:
+          _this.showDialog("success", notification.message, "", 0);
+
+          break;
+      }
+    });
   }
 });
-/*const app = new Vue({
-    el: '#app',
-    router,
-    data: {
-        messages: [],
-        users: [],
-        login : "",
-    },
-
-    created() {
-        Echo.channel('events')
-            .listen('RealTimeMessage', (event) => {
-                this.$fire({
-                    title: "Login Fired!",
-                    text: event.message,
-                    type: "success",
-                    timer: 3000
-                  }).then(r => {
-                   console.log(r.value);
-                  });
-            });
-    },
-})*/
 
 /***/ }),
 
@@ -5658,12 +5716,19 @@ try {
 
 
 window.axios = __webpack_require__(/*! axios */ "./node_modules/axios/index.js");
-window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+var token = document.head.querySelector('meta[name="csrf-token"]');
+
+if (token) {
+  window.axios.defaults.headers.common['X-CSRF-TOKEN'] = token.content;
+} else {
+  console.error('CSRF token not found: https://laravel.com/docs/csrf#csrf-x-csrf-token');
+}
 /**
  * Echo exposes an expressive API for subscribing to channels and listening
  * for events that are broadcast by Laravel. Echo and event broadcasting
  * allows your team to easily build robust real-time web applications.
  */
+
 
 
 window.Pusher = __webpack_require__(/*! pusher-js */ "./node_modules/pusher-js/dist/web/pusher.js");
@@ -37243,6 +37308,45 @@ component.options.__file = "resources/js/components/LoginForm.vue"
 
 /***/ }),
 
+/***/ "./resources/js/components/LoginNotification.vue":
+/*!*******************************************************!*\
+  !*** ./resources/js/components/LoginNotification.vue ***!
+  \*******************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _LoginNotification_vue_vue_type_template_id_4d29abce___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./LoginNotification.vue?vue&type=template&id=4d29abce& */ "./resources/js/components/LoginNotification.vue?vue&type=template&id=4d29abce&");
+/* harmony import */ var _LoginNotification_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./LoginNotification.vue?vue&type=script&lang=js& */ "./resources/js/components/LoginNotification.vue?vue&type=script&lang=js&");
+/* harmony import */ var _node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! !../../../node_modules/vue-loader/lib/runtime/componentNormalizer.js */ "./node_modules/vue-loader/lib/runtime/componentNormalizer.js");
+
+
+
+
+
+/* normalize component */
+;
+var component = (0,_node_modules_vue_loader_lib_runtime_componentNormalizer_js__WEBPACK_IMPORTED_MODULE_2__["default"])(
+  _LoginNotification_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_1__["default"],
+  _LoginNotification_vue_vue_type_template_id_4d29abce___WEBPACK_IMPORTED_MODULE_0__.render,
+  _LoginNotification_vue_vue_type_template_id_4d29abce___WEBPACK_IMPORTED_MODULE_0__.staticRenderFns,
+  false,
+  null,
+  null,
+  null
+  
+)
+
+/* hot reload */
+if (false) { var api; }
+component.options.__file = "resources/js/components/LoginNotification.vue"
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (component.exports);
+
+/***/ }),
+
 /***/ "./resources/js/components/RegisterForm.vue":
 /*!**************************************************!*\
   !*** ./resources/js/components/RegisterForm.vue ***!
@@ -37298,6 +37402,22 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
+/***/ "./resources/js/components/LoginNotification.vue?vue&type=script&lang=js&":
+/*!********************************************************************************!*\
+  !*** ./resources/js/components/LoginNotification.vue?vue&type=script&lang=js& ***!
+  \********************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _node_modules_babel_loader_lib_index_js_clonedRuleSet_5_0_rules_0_use_0_node_modules_vue_loader_lib_index_js_vue_loader_options_LoginNotification_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/babel-loader/lib/index.js??clonedRuleSet-5[0].rules[0].use[0]!../../../node_modules/vue-loader/lib/index.js??vue-loader-options!./LoginNotification.vue?vue&type=script&lang=js& */ "./node_modules/babel-loader/lib/index.js??clonedRuleSet-5[0].rules[0].use[0]!./node_modules/vue-loader/lib/index.js??vue-loader-options!./resources/js/components/LoginNotification.vue?vue&type=script&lang=js&");
+ /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (_node_modules_babel_loader_lib_index_js_clonedRuleSet_5_0_rules_0_use_0_node_modules_vue_loader_lib_index_js_vue_loader_options_LoginNotification_vue_vue_type_script_lang_js___WEBPACK_IMPORTED_MODULE_0__["default"]); 
+
+/***/ }),
+
 /***/ "./resources/js/components/RegisterForm.vue?vue&type=script&lang=js&":
 /*!***************************************************************************!*\
   !*** ./resources/js/components/RegisterForm.vue?vue&type=script&lang=js& ***!
@@ -37327,6 +37447,23 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "staticRenderFns": () => (/* reexport safe */ _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_LoginForm_vue_vue_type_template_id_12a98f72___WEBPACK_IMPORTED_MODULE_0__.staticRenderFns)
 /* harmony export */ });
 /* harmony import */ var _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_LoginForm_vue_vue_type_template_id_12a98f72___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!../../../node_modules/vue-loader/lib/index.js??vue-loader-options!./LoginForm.vue?vue&type=template&id=12a98f72& */ "./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib/index.js??vue-loader-options!./resources/js/components/LoginForm.vue?vue&type=template&id=12a98f72&");
+
+
+/***/ }),
+
+/***/ "./resources/js/components/LoginNotification.vue?vue&type=template&id=4d29abce&":
+/*!**************************************************************************************!*\
+  !*** ./resources/js/components/LoginNotification.vue?vue&type=template&id=4d29abce& ***!
+  \**************************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "render": () => (/* reexport safe */ _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_LoginNotification_vue_vue_type_template_id_4d29abce___WEBPACK_IMPORTED_MODULE_0__.render),
+/* harmony export */   "staticRenderFns": () => (/* reexport safe */ _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_LoginNotification_vue_vue_type_template_id_4d29abce___WEBPACK_IMPORTED_MODULE_0__.staticRenderFns)
+/* harmony export */ });
+/* harmony import */ var _node_modules_vue_loader_lib_loaders_templateLoader_js_vue_loader_options_node_modules_vue_loader_lib_index_js_vue_loader_options_LoginNotification_vue_vue_type_template_id_4d29abce___WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! -!../../../node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!../../../node_modules/vue-loader/lib/index.js??vue-loader-options!./LoginNotification.vue?vue&type=template&id=4d29abce& */ "./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib/index.js??vue-loader-options!./resources/js/components/LoginNotification.vue?vue&type=template&id=4d29abce&");
 
 
 /***/ }),
@@ -37486,6 +37623,35 @@ var staticRenderFns = [
     ])
   },
 ]
+render._withStripped = true
+
+
+
+/***/ }),
+
+/***/ "./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib/index.js??vue-loader-options!./resources/js/components/LoginNotification.vue?vue&type=template&id=4d29abce&":
+/*!*****************************************************************************************************************************************************************************************************************************!*\
+  !*** ./node_modules/vue-loader/lib/loaders/templateLoader.js??vue-loader-options!./node_modules/vue-loader/lib/index.js??vue-loader-options!./resources/js/components/LoginNotification.vue?vue&type=template&id=4d29abce& ***!
+  \*****************************************************************************************************************************************************************************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "render": () => (/* binding */ render),
+/* harmony export */   "staticRenderFns": () => (/* binding */ staticRenderFns)
+/* harmony export */ });
+var render = function () {
+  var _vm = this
+  var _h = _vm.$createElement
+  var _c = _vm._self._c || _h
+  return _c(
+    "span",
+    { staticClass: "alert alert-danger", attrs: { id: "notification" } },
+    [_vm._v("You are login from new device!")]
+  )
+}
+var staticRenderFns = []
 render._withStripped = true
 
 
@@ -37753,9 +37919,7 @@ var render = function () {
         _c("h4", [_vm._v("Terms and Conditions")]),
         _vm._v(" "),
         _c("div", { staticClass: "input-group" }, [
-          _c("input", {
-            attrs: { type: "checkbox", id: "terms", required: "" },
-          }),
+          _c("input", { ref: "toc", attrs: { type: "checkbox", id: "terms" } }),
           _vm._v(" "),
           _c("label", { attrs: { for: "terms" } }, [
             _vm._v("I accept the\n          "),
@@ -53291,6 +53455,40 @@ Vue.compile = compileToFunctions;
 
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (Vue);
 
+
+/***/ }),
+
+/***/ "./resources/js sync recursive \\.vue$/":
+/*!************************************!*\
+  !*** ./resources/js/ sync \.vue$/ ***!
+  \************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var map = {
+	"./components/LoginForm.vue": "./resources/js/components/LoginForm.vue",
+	"./components/LoginNotification.vue": "./resources/js/components/LoginNotification.vue",
+	"./components/RegisterForm.vue": "./resources/js/components/RegisterForm.vue"
+};
+
+
+function webpackContext(req) {
+	var id = webpackContextResolve(req);
+	return __webpack_require__(id);
+}
+function webpackContextResolve(req) {
+	if(!__webpack_require__.o(map, req)) {
+		var e = new Error("Cannot find module '" + req + "'");
+		e.code = 'MODULE_NOT_FOUND';
+		throw e;
+	}
+	return map[req];
+}
+webpackContext.keys = function webpackContextKeys() {
+	return Object.keys(map);
+};
+webpackContext.resolve = webpackContextResolve;
+module.exports = webpackContext;
+webpackContext.id = "./resources/js sync recursive \\.vue$/";
 
 /***/ }),
 

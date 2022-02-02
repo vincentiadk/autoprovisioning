@@ -5,6 +5,7 @@
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Auto Provisioning</title>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href=" {{ asset('vendor/bootstrap/css/bootstrap.min.css') }}">
@@ -22,7 +23,7 @@
     <link rel="stylesheet" href="{{ asset('vendor/select2-bootstrap4-theme/select2-bootstrap4.css') }}">
     <link rel="stylesheet" href="{{ asset('css/terminal.css') }}">
     <link rel="stylesheet" href="{{ asset('libs/css/validation.css') }}">
-    <script src="{{ asset('js/app.js') }}" defer></script>
+
     <script src=" {{ asset('vendor/jquery/jquery-3.3.1.min.js') }}"></script>
     <script src=" {{ asset('vendor/bootstrap/js/bootstrap.bundle.js') }}"></script>
     <script src=" {{ asset('vendor/slimscroll/jquery.slimscroll.js') }}"></script>
@@ -46,6 +47,7 @@
 </head>
 
 <script>
+
 $('a').on('click', function() {
     event.prefentDefault();
 })

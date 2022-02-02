@@ -7,6 +7,7 @@ use App\Models\OltList;
 use App\Models\User;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class Select2Controller extends Controller
 {
@@ -20,19 +21,19 @@ class Select2Controller extends Controller
     {
         $this->url = config('metro.url');
         $this->client = new Client(["base_uri" => $this->url, "http_errors" => false, 'verify' => false]);
-        $this->user = User::find(session('id'));
+        $this->user = Auth::user();
         $token = $this->getToken(null, $this->user);
         $this->header = $this->getHeader($token);
     }
 
     public function getUser()
     {
-        return User::findOrFail(request('id'));
+        return Auth::user();
     }
 
     public function getOlt()
     {
-        $regional = session('regional');
+        $regional = Auth::user()->regional;
         $search = strtolower(request('search'));
         $data = OltList::where(\DB::Raw('LOWER(node_id)'), 'LIKE', '%-d' . $regional . '-%')
             ->where(function ($q) use ($search) {
@@ -60,7 +61,7 @@ class Select2Controller extends Controller
     public function getNode()
     {
         $search = strtolower(request('search'));
-        $api = $this->client->get("/network/v1/nodes?group=" . session('regional') . "&name=" . urlencode('like:' . $search) . '&type=M', $this->header);
+        $api = $this->client->get("/network/v1/nodes?group=" . Auth::user()->regional . "&name=" . urlencode('like:' . $search) . '&type=M', $this->header);
         $result = json_decode($api->getBody()->getContents(), true);
         $response[] = [
             'id' => '',

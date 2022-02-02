@@ -1,6 +1,8 @@
 <?php
 namespace App\Http\Controllers\Traits;
 use App\Events\RealTimeMessage;
+use App\Notifications\RealTimeNotification;
+use Illuminate\Support\Facades\Auth;
 
 trait SessionUser {
     
@@ -17,8 +19,9 @@ trait SessionUser {
             'last_login_at' => $last_login_at,
             'timestamps' => false
         ]);
+        Auth::login($user);
+        $user->notify(new RealTimeNotification('You are login from new device', 'login'));
 
-        event(new RealTimeMessage($user->name . ' Login'));
         return ['status' => 'Login Called!'];
     }
 }

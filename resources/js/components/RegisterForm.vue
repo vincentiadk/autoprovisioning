@@ -83,7 +83,7 @@
       <div class="row">
         <h4>Terms and Conditions</h4>
         <div class="input-group">
-          <input type="checkbox" id="terms" required />
+          <input type="checkbox" id="terms" ref="toc" />
           <label for="terms"
             >I accept the
             <span @click="openToc" style="color: red"
@@ -124,7 +124,7 @@ export default {
   },
 
   methods: {
-    resetInput(){
+    resetInput() {
       this.nama = "";
       this.email = "";
       this.password = "";
@@ -136,50 +136,66 @@ export default {
     formSubmit(e) {
       e.preventDefault();
       let currentObj = this;
-      axios
-        .post("/register", {
-          nama: this.nama,
-          email: this.email,
-          password: this.password,
-          password_confirmation: this.password_confirmation,
-          phone_number: this.phone_number,
-          nik: this.nik,
-          regional: this.regional,
-          _token: this.csrf,
-        })
-        .then(function (response) {
-          if (response.data.status == 200) {
-            currentObj.resetInput();
-            currentObj.$parent.showDialog(
-              "success",
-              "Register Success",
-              "Please check your email for activation",
-              0
-            );
-          } else if (response.data.status == 422) {
-            let error = "<ul>";
-            $.each(response.data.error, function (i, val) {
-              error += "<li>" + val + "</li>";
-            });
-            error += "</ul>";
-            currentObj.$parent.showDialog(
-              "warning",
-              "Check your input!",
-              error,
-              30000
-            );
-          } else {
-            currentObj.$parent.showDialog(
-              "error",
-              "Register Failed",
-              "Server Error!",
-              10000
-            );
-          }
-        })
-        .catch(function (error) {
-          currentObj.output = error;
-        });
+      if (currentObj.$refs.toc.checked == false) {
+        currentObj.$parent
+          .$fire({
+            title: "Accept Terms And Conditions!",
+            html: "You have not accept terms and conditions yet",
+            type: "error",
+            allowOutsideClick: false,
+            confirmButtonText: "Please, show me",
+          })
+          .then((result) => {
+            if (result.value) {
+              currentObj.openToc(e);
+            }
+          });
+      } else {
+        axios
+          .post("/register", {
+            nama: this.nama,
+            email: this.email,
+            password: this.password,
+            password_confirmation: this.password_confirmation,
+            phone_number: this.phone_number,
+            nik: this.nik,
+            regional: this.regional,
+            _token: this.csrf,
+          })
+          .then(function (response) {
+            if (response.data.status == 200) {
+              currentObj.resetInput();
+              currentObj.$parent.$frie(
+                "success",
+                "Register Success",
+                "Please check your email for activation",
+                0
+              );
+            } else if (response.data.status == 422) {
+              let error = "<ul>";
+              $.each(response.data.error, function (i, val) {
+                error += "<li>" + val + "</li>";
+              });
+              error += "</ul>";
+              currentObj.$parent.showDialog(
+                "warning",
+                "Check your input!",
+                error,
+                30000
+              );
+            } else {
+              currentObj.$parent.showDialog(
+                "error",
+                "Register Failed",
+                "Server Error!",
+                10000
+              );
+            }
+          })
+          .catch(function (error) {
+            currentObj.output = error;
+          });
+      }
     },
     openToc(e) {
       e.preventDefault();
@@ -196,7 +212,7 @@ export default {
             title: "modal-title",
             content: "modal-content",
           },
-          allowOutsideClick: false
+          allowOutsideClick: false,
         });
       });
     },

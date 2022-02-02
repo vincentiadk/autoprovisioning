@@ -11,6 +11,7 @@ use DB;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 class MetroController extends Controller
 {
@@ -24,13 +25,13 @@ class MetroController extends Controller
     {
         $this->url = config('metro.url');
         $this->client = new Client(["base_uri" => $this->url, "http_errors" => false, 'verify' => false]);
-        $this->token = $this->getToken(null, User::find(session('id')));
+        $this->token = $this->getToken(null, Auth::user());
         $this->header = $this->getHeader($this->token);
     }
 
     public function store()
     {
-        $user = User::findOrFail(session('id'));
+        $user = Auth::user();
         if ($user->nwuser == "" || $user->nwpass == "") {
             $response = [
                 'status' => 500,
@@ -176,7 +177,7 @@ class MetroController extends Controller
                 if ($config_id == 0) {
                     $config_id = ConfigurationStatus::create([
                         'metro_list_id' => $metro_list_id,
-                        'created_by' => session('id'),
+                        'created_by' => Auth::user()->id,
                     ])->id;
                 } else {
                     ConfigurationStatus::find($config_id)->update([
@@ -256,7 +257,7 @@ class MetroController extends Controller
 
     public function checkTask()
     {
-        $user = User::find(session('id'));
+        $user = Auth::user();
         try {
             $token = $this->getToken('nwuser=' . $this->decrypt($user->nwuser) . ';nwpass=' . $this->decrypt($user->nwpass), $user);
             $header = $this->getHeader($token);
@@ -271,7 +272,7 @@ class MetroController extends Controller
     public function statusTask()
     {
         try {
-            $user = User::find(session('id'));
+            $user = Auth::user();
             $token = $this->getToken('nwuser=' . $this->decrypt($user->nwuser) . ';nwpass=' . $this->decrypt($user->nwpass), $user);
             $header = $this->getHeader($token);
             $response = $this->client->get("/network/v1/tasks/" . request('task_id'), $header);
@@ -285,7 +286,7 @@ class MetroController extends Controller
                 'description' => 'update metro',
                 'subject_id' => $metro->id,
                 'subject_type' => "App\Models\MetroList",
-                'causer_id' => session('id'),
+                'causer_id' => Auth::user()->id,
                 'causer_type' => "App\Models\User",
                 'properties' => json_encode($metro->toArray()),
             ]);
@@ -664,7 +665,7 @@ class MetroController extends Controller
 
     public function confirmTask()
     {
-        $user = User::find(session('id'));
+        $user = Auth::user();
         $token = $this->getToken('nwuser=' . $this->decrypt($user->nwuser) . ';nwpass=' . $this->decrypt($user->nwpass), $user);
         $header = $this->getHeader($token);
         try {

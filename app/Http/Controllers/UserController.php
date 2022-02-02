@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
-use App\Models\User;
-use App\Models\SettingConfiguration;
-use App\Jobs\SendEmailJob;
 use App\Http\Controllers\Traits\Authorization;
+use App\Jobs\SendEmailJob;
+use App\Models\SettingConfiguration;
+use App\Models\User;
 use DB;
-use GuzzleHttp\Client;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
@@ -19,9 +19,9 @@ class UserController extends Controller
     {
         $data = [
             'title' => 'User Management',
-            'content' => 'user'
+            'content' => 'user',
         ];
-        if( request()->header('X-PJAX') ) {
+        if (request()->header('X-PJAX')) {
             return view('user', ['data' => $data]);
         } else {
             return view('layouts.index', ['data' => $data]);
@@ -56,7 +56,7 @@ class UserController extends Controller
                 } else {
                     $aksi .= "<button class='btn btn-primary btn-xs' onclick='enableUser($val->id)'><i class='fa fa-check-circle'></i> Activated</button>";
                 }
-                if($val->id == 1) {
+                if ($val->id == 1) {
                     $aksi = "";
                 }
                 $response['data'][] = [
@@ -67,7 +67,7 @@ class UserController extends Controller
                     $val->ldap,
                     $val->nik,
                     $aksi .
-                    '<a href="'. url('panel/user/show/'. $val->id).'" class="btn btn-success btn-xs page"> <i class="far fa-edit"></i> Ubah</a>',
+                    '<a href="' . url('panel/user/show/' . $val->id) . '" class="btn btn-success btn-xs page"> <i class="far fa-edit"></i> Ubah</a>',
                 ];
                 $nomor++;
             }
@@ -97,13 +97,13 @@ class UserController extends Controller
             $data['nwpass_decrypted'] = $user->nwpass == "" ? "" : $this->decrypt($user->nwpass);
             $data['nwuser_decrypted'] = $user->nwuser == "" ? "" : $this->decrypt($user->nwuser);
             $checkUser = $this->checkUser($data['nwuser_decrypted'], $data['nwpass_decrypted'], $user);
-            $data['tacacs_notification'] =  "credentials ". $checkUser["credential_name"] . " is " . ($checkUser["valid"] == true ? "valid" : "not valid");
+            $data['tacacs_notification'] = "credentials " . $checkUser["credential_name"] . " is " . ($checkUser["valid"] == true ? "valid" : "not valid");
         } else {
             $user = new User;
             $data['type'] = 'create';
         }
         $data['user'] = $user;
-        if( request()->header('X-PJAX') ) {
+        if (request()->header('X-PJAX')) {
             return view('user-form', ['data' => $data]);
         } else {
             return view('layouts.index', ['data' => $data]);
@@ -116,20 +116,16 @@ class UserController extends Controller
             'title' => 'Lihat Profile',
             'content' => 'user-form',
         ];
-        $id = session('id');
-        if ($id > 0) {
-            $user = User::findOrFail($id);
-            $data['type'] = 'update';
-            $data['nwpass_decrypted'] = $user->nwpass == "" ? "" : $this->decrypt($user->nwpass);
-            $data['nwuser_decrypted'] = $user->nwuser == "" ? "" : $this->decrypt($user->nwuser);
-            $checkUser = $this->checkUser($data['nwuser_decrypted'], $data['nwpass_decrypted'], $user);
-            $data['tacacs_notification'] =  "credentials ". $checkUser["credential_name"] . " is " . ($checkUser["valid"] == true ? "valid" : "not valid");
-        } else {
-            $user = new User;
-            $data['type'] = 'create';
-        }
+
+        $user = Auth::user();
+        $data['type'] = 'update';
+        $data['nwpass_decrypted'] = $user->nwpass == "" ? "" : $this->decrypt($user->nwpass);
+        $data['nwuser_decrypted'] = $user->nwuser == "" ? "" : $this->decrypt($user->nwuser);
+        $checkUser = $this->checkUser($data['nwuser_decrypted'], $data['nwpass_decrypted'], $user);
+        $data['tacacs_notification'] = "credentials " . $checkUser["credential_name"] . " is " . ($checkUser["valid"] == true ? "valid" : "not valid");
+
         $data['user'] = $user;
-        if( request()->header('X-PJAX') ) {
+        if (request()->header('X-PJAX')) {
             return view('user-form', ['data' => $data]);
         } else {
             return view('layouts.index', ['data' => $data]);
@@ -146,7 +142,7 @@ class UserController extends Controller
             'user' => $user,
             'type' => 'setting',
         ];
-        if( request()->header('X-PJAX') ) {
+        if (request()->header('X-PJAX')) {
             return view('user-form', ['data' => $data]);
         } else {
             return view('layouts.index', ['data' => $data]);
@@ -162,7 +158,7 @@ class UserController extends Controller
         $message = '';
         $validator = Validator::make(request()->all(), [
             "email" => $id > 0 ? "required|email|unique:users,email," . $id : "required|email|unique:users,email",
-            "nik"   => $id > 0 ? "required|numeric|digits_between:1,8|unique:users,nik," . $id : "required|numeric|digits_between:1,8|unique:users,nik",
+            "nik" => $id > 0 ? "required|numeric|digits_between:1,8|unique:users,nik," . $id : "required|numeric|digits_between:1,8|unique:users,nik",
         ], [
             "email.required" => "Email wajib di isi!",
             "email.unique" => "Email Telah Terdaftar!",
@@ -170,7 +166,7 @@ class UserController extends Controller
             "nik.required" => "NIK wajib diisi!",
             "nik.numeric" => "NIK wajib berisi angka!",
             "nik.unique" => "NIK telah terdaftar!",
-            "nik.digits_between" => "Jumlah digit NIK antara 1 sampai 8 digit!"
+            "nik.digits_between" => "Jumlah digit NIK antara 1 sampai 8 digit!",
         ]);
         if ($validator->fails()) {
             $response = [
@@ -185,18 +181,18 @@ class UserController extends Controller
                         'email' => request('email'),
                         'active' => request('active'),
                         'name' => request('name'),
-                        'regional'  => request('regional'),
-                        'nik'   => request('nik'),
+                        'regional' => request('regional'),
+                        'nik' => request('nik'),
                         'nwuser' => request('nwuser') == '' ? null : $this->encrypt(request('nwuser')),
-                        'nwpass' => request('nwpass') == '' ? null: $this->encrypt(request('nwpass'))
+                        'nwpass' => request('nwpass') == '' ? null : $this->encrypt(request('nwpass')),
                     ]);
-                    
+
                     $checkUser = $this->checkUser(request('nwuser'), request('nwpass'), $user);
                     $message .= 'Berhasil menyimpan. ';
                     $response = [
                         'status' => 200,
                         'message' => $message,
-                        'tacacs_notification' =>  "credentials ". $checkUser["credential_name"] . " is " . ($checkUser["valid"] == true ? "valid" : "not valid"),
+                        'tacacs_notification' => "credentials " . $checkUser["credential_name"] . " is " . ($checkUser["valid"] == true ? "valid" : "not valid"),
                         'tacacs_valid' => $checkUser["valid"],
                     ];
                 } else if (request('type') == 'setting') {
@@ -250,14 +246,14 @@ class UserController extends Controller
                             ];
                         }
                     }
-                    
+
                 }
             } else {
                 $user = User::create([
                     'email' => request('email'),
                     'active' => request('active'),
                     'otp_login' => true,
-                    'active'    => true,
+                    'active' => true,
                 ]);
                 $response = [
                     'status' => 200,
@@ -276,9 +272,9 @@ class UserController extends Controller
         $user = User::find(request('id'));
         $template = SettingConfiguration::where('name', 'mail-activation')->first();
         $text = "";
-        if($template) {
+        if ($template) {
             $text = $template->value;
-        } 
+        }
 
         SendEmailJob::dispatch($user, $text);
         $response = [

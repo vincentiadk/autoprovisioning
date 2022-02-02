@@ -3,8 +3,9 @@
 namespace App\Http\Middleware;
 
 use App\Models\User;
-use Illuminate\Http\Request;
 use Closure;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class AuthLogin
 {
@@ -17,14 +18,12 @@ class AuthLogin
      */
     public function handle(Request $request, Closure $next)
     {
-        if (session()->has('id') && session()->has('last_login_at')) {
-            if (session()->get('last_login_at') != User::find(session()->get('id'))->last_login_at) {
-                session()->flush();
-                return redirect('login');
-            }
+
+        if (Auth::check() && Auth::user()->last_login_at == session()->get('last_login_at')) {
             return $next($request);
+        } else {
+            session()->flush();
+            return redirect('login');
         }
-        session()->flush();
-        return redirect('login');
     }
 }

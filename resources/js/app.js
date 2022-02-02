@@ -21,8 +21,8 @@ Vue.use(VueRouter);
  * Eg. ./components/ExampleComponent.vue -> <example-component></example-component>
  */
 
-//const files = require.context('./', true, /\.vue$/i)
-//files.keys().map(key => Vue.component(key.split('/').pop().split('.')[0], files(key).default))
+const files = require.context('./', true, /\.vue$/i)
+files.keys().map(key => Vue.component(key.split('/').pop().split('.')[0], files(key).default))
 
 //Vue.component('example-component', require('./components/ExampleComponent.vue').default);
 
@@ -52,7 +52,7 @@ const app = new Vue({
     router,
     methods: {
         showDialog(typeDialog, title, msg, timer) {
-            if(timer == 0){
+            if (timer == 0) {
                 this.$fire({
                     title: title,
                     html: msg,
@@ -66,31 +66,40 @@ const app = new Vue({
                     timer: timer,
                 })
             }
-        }
+        },
+    },
+    created() {
+        Echo.private("App.Models.User." + document.querySelector("#loginUserId").value)
+            .notification((notification) => {
+                switch (notification.event) {
+                    case "login":
+                        this.$fire({
+                                title: notification.message,
+                                html: "You will be automatically logout",
+                                type: "warning",
+                                allowOutsideClick: false,
+                                confirmButtonText: "OK",
+                              })
+                              .then((result) => {
+                                if (result.value) {
+                                    let a = document.createElement("a");
+                                    a.target = "_self";
+                                    a.href = '/login';
+                                    a.click();
+                                }
+                              });
+                        break;
+                    case "notification" : 
+                        //append new notification here
+                    break;
+                    default:
+                        this.showDialog(
+                            "success",
+                            notification.message,
+                            "",
+                            0);
+                        break;
+                }
+            })
     }
 });
-
-
-/*const app = new Vue({
-    el: '#app',
-    router,
-    data: {
-        messages: [],
-        users: [],
-        login : "",
-    },
-
-    created() {
-        Echo.channel('events')
-            .listen('RealTimeMessage', (event) => {
-                this.$fire({
-                    title: "Login Fired!",
-                    text: event.message,
-                    type: "success",
-                    timer: 3000
-                  }).then(r => {
-                   console.log(r.value);
-                  });
-            });
-    },
-})*/

@@ -14,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Jenssegers\Agent\Agent;
 use LangleyFoxall\LaravelNISTPasswordRules\PasswordRules;
+use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
@@ -37,7 +38,7 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        if (session('id')) {
+        if (Auth::check()) {
             return redirect('panel/dashboard');
         } else {
             if (request()->has('_token')) {
@@ -357,6 +358,7 @@ class AuthController extends Controller
         // Laravel specific logic
         //$this->guard()->logout();
         $request->session()->invalidate();
+        Auth::logout();
 
         return redirect('login');
     }

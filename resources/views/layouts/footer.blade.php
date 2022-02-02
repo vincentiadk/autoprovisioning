@@ -23,6 +23,8 @@
 <!-- end main wrapper -->
 <!-- ============================================================== -->
 <!-- Optional JavaScript -->
+<input type="hidden" value="{{Auth::user()->id}}" id="loginUserId">
+<script src="{{ asset('js/app.js') }}"></script>
 </body>
 
 </html>
