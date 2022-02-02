@@ -38,7 +38,7 @@
     <script src="{{ asset('vendor/toastr/toastr.min.js') }}"></script>
     <script src="{{ asset('vendor/select2/js/select2.min.js') }}"></script>
     <script src="{{ asset('js/jquery-pjax.js') }}"></script>
-    
+
     <style>
     .btn {
         margin: 0px 3px;
@@ -47,7 +47,6 @@
 </head>
 
 <script>
-
 $('a').on('click', function() {
     event.prefentDefault();
 })
@@ -63,7 +62,8 @@ function getSearchParams(k) {
 
 function checkTaskEvery5sec() {
     checkTaskId($('#task_id').text());
-    if ($('#div_status').text() != "closed" && $('#div_status').text() != "submitted" && $('#div_status').text() != "pending") {
+    if ($('#div_status').text() != "closed" && $('#div_status').text() != "submitted" && $('#div_status').text() !=
+        "pending") {
         setTimeout(checkTaskEvery5sec, 5000);
     }
 }
@@ -561,7 +561,7 @@ function checkAll() {
     $('#select_port_access').hide();
     $('#select_port_backhaul_1').hide();
     $('#select_port_backhaul_2').hide();
-    if($('#div_status').text().includes("submitted") || $('#div_status').text().includes("pending")) {
+    if ($('#div_status').text().includes("submitted") || $('#div_status').text().includes("pending")) {
         checkNode("node_access_name", "node_access_lbl", "node_access");
         checkNode("node_backhaul_1_name", "node_backhaul_1_lbl", "node_backhaul_1");
         checkNode("node_backhaul_2_name", "node_backhaul_2_lbl", "node_backhaul_2");
@@ -574,7 +574,7 @@ function checkDescription(id, lbl) {
     if ($('#' + id).val().length < 6) {
         setUnavailable(lbl, id, "Description Min 6 character");
     } else {
-        setAvailable(lbl, id, "Description "+name+" OK");
+        setAvailable(lbl, id, "Description " + name + " OK");
     }
     $('#' + id).removeClass('loading');
 }
@@ -927,7 +927,7 @@ function checkAccess() {
             }
         },
         complete: function() {
-            //$('#div_' + id).remove();
+            checkPortValue();
         }
     });
 }
@@ -1016,7 +1016,8 @@ function checkBackhaul(sec, id, lastFunction = "nothing") {
                     setAvailable('port_backhaul_' + sec + '_lbl', 'select_port_backhaul_' + sec,
                         "Port and VLAN " + response
                         .interface + " already configured with " + vcidLbl + " = " + response.vcid);
-                    setAvailable('vcid_backhaul_' + sec + '_lbl', 'vcid', msgVcid + " configured with " + response.interface);
+                    setAvailable('vcid_backhaul_' + sec + '_lbl', 'vcid', msgVcid + " configured with " +
+                        response.interface);
                     $('#vcid').val(response.vcid);
 
                     if (manufacture == 'HUAWEI') {
@@ -1034,10 +1035,10 @@ function checkBackhaul(sec, id, lastFunction = "nothing") {
                         $('#description_backhaul_' + sec).val("");
                         setUnavailable("description_"+name+"_lbl", "description_" + name, "Please entry description "+ name);
                     }*/
-                    if(vcid != "" && vcid.length  >= 4) {
+                    if (vcid != "" && vcid.length >= 4) {
                         setAvailable('vcid_backhaul_' + sec + '_lbl', 'vcid', msgVcid + " available");
                         setAvailable('vsiname_backhaul_' + sec + '_lbl', 'vsiname', "VSI NAME backhaul " +
-                                sec + " available");
+                            sec + " available");
                     }
                 }
                 if (response.statusVlan == 200 && vlan != "" && vlan.length > 2) {
@@ -1064,12 +1065,15 @@ function checkBackhaul(sec, id, lastFunction = "nothing") {
             // $('#div_'+id).parent().remove();
         },
         complete: function(response) {
-            if (response.responseJSON.vcid != vcid && vcid != "" && response.responseJSON.statusVlan == 200) {
+            if (response.responseJSON.vcid != vcid && vcid != "" && response.responseJSON.statusVlan ==
+                200) {
                 Toast.fire({
-                        icon: 'warning',
-                        title: 'VCID/VSI ID' + ' access changed from ' + vcid + ' to ' + response.responseJSON.vcid
-                    });
+                    icon: 'warning',
+                    title: 'VCID/VSI ID' + ' access changed from ' + vcid + ' to ' + response
+                        .responseJSON.vcid
+                });
             }
+            checkPortValue();
             checkAccess();
         }
     });
@@ -1117,9 +1121,70 @@ function checkQosBefore(id, lbl, node) {
     }
 }
 
+function checkPortValue(){
+    var port, port2;
+
+    if ($("#node_access_name").val() == $('#node_backhaul_1_name').val()) {
+        if ($('#node_manufacture').val() == 'HUAWEI') {
+            port2 = $("#select_port_backhaul_1").val();
+            port = $("#select_port_access").val();
+        } else {
+            port2 = $("#input_port_backhaul_1").val();
+            port = $("#input_port_access").val();
+        }
+        if (port2 == port) {
+            if($('#node_manufacture').val() == 'HUAWEI') {
+                setUnavailable("port_access_lbl", "select_port_access", "Port access can not be same as port backhaul 1");
+                setUnavailable("port_backhaul_1_lbl", "select_port_backhaul_1", "Port backhaul 1 can not be same as port access");
+            } else {
+                setUnavailable("port_access_lbl", "input_port_access", "Port access can not be same as port backhaul 1");
+                setUnavailable("port_backhaul_1_lbl", "input_port_backhaul_1", "Port backhaul 1can not be same as port access");
+            }
+        }
+        
+    }
+    if ($("#node_backhaul_1_name").val() == $('#node_backhaul_2_name').val()) {
+        if ($('#node_manufacture').val() == 'HUAWEI') {
+            port = $("#select_port_backhaul_1").val();
+            port2 = $("#select_port_backhaul_2").val();
+        } else {
+            port = $("#input_port_backhaul_1").val();
+            port2 = $("#input_port_backhaul_2").val();
+        }
+        if (port2 == port) {
+            if($('#node_manufacture').val() == 'HUAWEI') {
+                setUnavailable("port_backhaul_2_lbl", "select_port_backhaul_2", "Port backhaul 2 can not be same as port backhaul 1");
+                setUnavailable("port_backhaul_1_lbl", "select_port_backhaul_1", "Port backhaul 1 can not be same as port backhaul 2");
+            } else { 
+                setUnavailable("port_backhaul_2_lbl", "input_port_backhaul_2", "Port backhaul 2 can not be same as port backhaul 1");
+                setUnavailable("port_backhaul_1_lbl", "input_port_backhaul_1", "Port backhaul 1 can not be same as port backhaul 2");
+            }
+        }
+    }
+    if ($("#node_backhaul_2_name").val() == $('#node_access_name').val()) {
+        if ($('#node_manufacture').val() == 'HUAWEI') {
+            port = $("#select_port_backhaul_2").val();
+            port2 = $("#select_port_access").val();
+        } else {
+            port = $("#input_port_backhaul_2").val();
+            port2 = $("#input_port_access").val();
+        }
+        if (port2 == port) {
+            if($('#node_manufacture').val() == 'HUAWEI') {
+                setUnavailable("port_backhaul_2_lbl", "select_port_backhaul_2", "Port backhaul 2 can not be same as port access");
+                setUnavailable("port_access_lbl", "select_port_access_2", "Port access can not be same as port backhaul 2");
+            } else {
+                setUnavailable("port_backhaul_2_lbl", "input_port_backhaul_2", "Port backhaul 2 can not be same as port access");
+                setUnavailable("port_access_lbl", "input_port_access_2", "Port access can not be same as port backhaul 2");
+            }
+        }
+    }
+}
+
 function checkPort(name, id) {
     var port = '',
-        backhaul = "false";
+        backhaul = "false",
+        node = '';
     if ($('#node_manufacture').val() == 'HUAWEI') {
         port = $("#select_port_" + name).val();
     } else {
@@ -1128,6 +1193,8 @@ function checkPort(name, id) {
     if (name.includes("backhaul")) {
         backhaul = "true";
     }
+
+    
     $.ajax({
         url: "{{ url('panel/metro/check-port') }}" + '?port=' + port +
             '&name=' + $("#node_" + name + '_name').val() + '&backhaul=' + backhaul,
@@ -1144,33 +1211,25 @@ function checkPort(name, id) {
                 } else {
                     $('#port_' + name + '_lbl_top').html('Port ' + name.replace("_", " "));
                 }
-                /*if (backhaul == "true") {
-                    $('#description_' + name).val(response.description);
-                    setAvailable("description_"+name+"_lbl", "description_" + name, "Description "+ name + " OK");
-                }*/
+                
                 $("#select_port_" + name).val(response.parent);
                 $("#input_port_" + name).val(response.parent);
                 $("#hidden_port_" + name).val(response.parent);
             } else {
                 $('#port_' + name + '_lbl_top').html('Port ' + name.replace("_", " "));
                 $("#hidden_port_" + name).val(port);
-                /*if (backhaul == "true") {
-                    $('#description_' + name).val("");
-                }*/
             }
         },
         complete: function() {
             $('#select_port_' + name).removeClass('loading');
             $('#input_port_' + name).removeClass('loading');
-            if (name != "access") {
-                checkBackhaul(name.split("_")[1], id, "checkPort");
-            } else {
-                checkAccess();
-            }
+
+            checkBackhaul(1);
+            checkBackhaul(2);
+            checkAccess();
         }
     });
 }
-
 function checkInterface(name) {
     var manufacture = 'node_' + name + '_manufacture';
     var node = 'node_' + name + '_name';

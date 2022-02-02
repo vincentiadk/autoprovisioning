@@ -510,11 +510,11 @@ class MetroController extends Controller
 
     public function checkPort()
     {
-        if (request('backhaul') == "true") {
-            $response = $this->client->get("/network/v1/nodes/" . request('name') . "/interfaces?description=like:backhaul&name=" . urlencode(request('port')), $this->header);
-        } else {
+        //if (request('backhaul') == "true") {
+        //    $response = $this->client->get("/network/v1/nodes/" . request('name') . "/interfaces?description=like:backhaul&name=" . urlencode(request('port')), $this->header);
+        //} else {
             $response = $this->client->get("/network/v1/nodes/" . request('name') . "/interfaces?name=" . urlencode(request('port')), $this->header);
-        }
+        //}
 
         if ($response->getStatusCode() !== 200) {
             return [
