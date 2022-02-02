@@ -46,7 +46,23 @@ const router = new VueRouter({
     routes,
     mode: "history"
 })
-
+const app2 = new Vue({
+    el: '#notification',
+    router,
+    data: {
+        notifications: [],
+    },
+    methods: {
+        fetchNotifications() {
+            axios.get('/notifications').then(response => {
+                this.notifications = response.data;
+            });
+        },
+    },
+    created() {
+        this.fetchNotifications();
+    }
+})
 const app = new Vue({
     el: '#app',
     router,
@@ -74,24 +90,26 @@ const app = new Vue({
                 switch (notification.event) {
                     case "login":
                         this.$fire({
-                                title: notification.message,
-                                html: "You will be automatically logout",
-                                type: "warning",
-                                allowOutsideClick: false,
-                                confirmButtonText: "OK",
-                              })
-                              .then((result) => {
+                            title: notification.message,
+                            html: "You will be automatically logged out",
+                            type: "warning",
+                            allowOutsideClick: false,
+                            confirmButtonText: "OK",
+                        })
+                            .then((result) => {
                                 if (result.value) {
                                     let a = document.createElement("a");
                                     a.target = "_self";
                                     a.href = '/login';
                                     a.click();
                                 }
-                              });
+                            });
                         break;
-                    case "notification" : 
-                        //append new notification here
-                    break;
+                    case "notification":
+                        let index = app2.notifications.length;
+                        app2.notifications.push(notification.notification[0]);
+                        //app2.$set(app2.notifications, index, notification.notification)
+                        break;
                     default:
                         this.showDialog(
                             "success",

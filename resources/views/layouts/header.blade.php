@@ -26,8 +26,9 @@
                             <ul class="dropdown-menu dropdown-menu-right notification-dropdown">
                                 <li>
                                     <div class="notification-title"> Notification</div>
-                                    <div class="notification-list">
-                                        <div class="list-group">
+                                    <div class="notification-list" id="notification">
+                                        <user-notification :notifications="notifications"></user-notification>
+                                        <!--<div class="list-group">
                                             <a href="#" class="list-group-item list-group-item-action active">
                                                 <div class="notification-info">
                                                     <div class="notification-list-user-img"><img src="/assets/images/avatar-2.jpg" alt="" class="user-avatar-md rounded-circle"></div>
@@ -61,7 +62,7 @@ John Abraham</span>is now following you
                                                     </div>
                                                 </div>
                                             </a>
-                                        </div>
+                                        </div>-->
                                     </div>
                                 </li>
                                 <li>

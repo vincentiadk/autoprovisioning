@@ -194,9 +194,9 @@ class User extends Authenticatable
         return $this->hasMany(Token::class);
     }
 
-    public function messages()
+    public function notifications()
     {
-        return $this->hasMany(Message::class);
+        return $this->hasMany(UserNotification::class);
     }
 
 }

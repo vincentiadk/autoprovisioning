@@ -22,6 +22,8 @@ Route::prefix('otp')->group(function() {
 
 Route::middleware('auth.login')->group(function () {
     Route::get('/', 'DashboardController@index');
+
+    Route::get('/notifications', 'NotificationController@getNotification');
     
     Route::prefix('panel')->group(function () {   
         Route::get('dashboard', 'DashboardController@index');

@@ -8,6 +8,7 @@ namespace App\Notifications;
 use Illuminate\Notifications\Notification;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Notifications\Messages\BroadcastMessage;
+use App\Models\UserNotification;
 
 class RealTimeNotification extends Notification implements ShouldBroadcastNow
 {
@@ -27,11 +28,17 @@ class RealTimeNotification extends Notification implements ShouldBroadcastNow
 
     public function toBroadcast($notifiable)
     {
+        $notification = UserNotification::create([
+            'user_id' => $notifiable->id,
+            'message' => $this->message
+        ])->id;
+
         return new BroadcastMessage([
             'message' => "$this->message",
-            'event' => "$this->event"
+            'event' => "$this->event",
+            'notification' => [
+                UserNotification::with('user')->find($notification)]
         ]);
 
-        //cara ambil id user = $notifiable->id
     }
 }
