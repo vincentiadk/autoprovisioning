@@ -52,16 +52,6 @@ const app2 = new Vue({
     data: {
         notifications: [],
     },
-    methods: {
-        fetchNotifications() {
-            axios.get('/notifications').then(response => {
-                this.notifications = response.data;
-            });
-        },
-    },
-    created() {
-        this.fetchNotifications();
-    }
 })
 const app = new Vue({
     el: '#app',

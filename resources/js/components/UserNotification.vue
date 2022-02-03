@@ -1,6 +1,10 @@
 <template>
   <div class="list-group">
-    <a href="#" class="list-group-item list-group-item-action active" v-for="notification in notifications">
+    <a
+      href="#"
+      class="list-group-item list-group-item-action active"
+      v-for="notification in notifications"
+    >
       <div class="notification-info">
         <div class="notification-list-user-img">
           <img
@@ -10,7 +14,9 @@
           />
         </div>
         <div class="notification-list-user-block">
-          <span class="notification-list-user-name">{{ notification.user.name }}</span
+          <span class="notification-list-user-name">{{
+            notification.user.name
+          }}</span
           >{{ notification.message }}
           <div class="notification-date">{{ notification.created_at }}</div>
         </div>
@@ -21,10 +27,18 @@
 
 <script>
 export default {
-  props: ['notifications'],
+  props: ["notifications"],
 
+  methods: {
+    fetchNotifications() {
+      axios.get("/notifications").then((response) => {
+        app2.notifications = response.data;
+      });
+    },
+  },
   created() {
-    console.log('User notification called');
-  }
+    this.fetchNotifications();
+    console.log("User notification called");
+  },
 };
 </script>

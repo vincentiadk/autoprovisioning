@@ -5583,10 +5583,24 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
-  props: ['notifications'],
+  props: ["notifications"],
+  methods: {
+    fetchNotifications: function fetchNotifications() {
+      axios.get("/notifications").then(function (response) {
+        app2.notifications = response.data;
+      });
+    }
+  },
   created: function created() {
-    console.log('User notification called');
+    this.fetchNotifications();
+    console.log("User notification called");
   }
 });
 
@@ -5652,18 +5666,6 @@ var app2 = new vue__WEBPACK_IMPORTED_MODULE_1__["default"]({
   router: router,
   data: {
     notifications: []
-  },
-  methods: {
-    fetchNotifications: function fetchNotifications() {
-      var _this = this;
-
-      axios.get('/notifications').then(function (response) {
-        _this.notifications = response.data;
-      });
-    }
-  },
-  created: function created() {
-    this.fetchNotifications();
   }
 });
 var app = new vue__WEBPACK_IMPORTED_MODULE_1__["default"]({
@@ -5688,12 +5690,12 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_1__["default"]({
     }
   },
   created: function created() {
-    var _this2 = this;
+    var _this = this;
 
     Echo["private"]("App.Models.User." + document.querySelector("#loginUserId").value).notification(function (notification) {
       switch (notification.event) {
         case "login":
-          _this2.$fire({
+          _this.$fire({
             title: notification.message,
             html: "You will be automatically logged out",
             type: "warning",
@@ -5717,7 +5719,7 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_1__["default"]({
           break;
 
         default:
-          _this2.showDialog("success", notification.message, "", 0);
+          _this.showDialog("success", notification.message, "", 0);
 
           break;
       }

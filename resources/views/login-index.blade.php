@@ -54,6 +54,8 @@
         </router-view>
 
     </div>
+    <div id="notification">
+</div>
 </body>
 <script src="{{ asset('js/app.js') }}"></script>
 
