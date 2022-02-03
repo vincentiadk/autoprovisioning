@@ -82,7 +82,12 @@ export default {
           }
         })
         .catch(function (error) {
-          currentObj.output = error;
+          currentObj.$parent.showDialog(
+              "error",
+              "Error",
+              error.response.data.message,
+              30000
+            );
         });
     },
   },
