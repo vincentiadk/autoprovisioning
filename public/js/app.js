@@ -5330,7 +5330,7 @@ __webpack_require__.r(__webpack_exports__);
           currentObj.$parent.showDialog("error", "Error", "Server Error. Please contact server administrator.", 30000);
         }
       })["catch"](function (error) {
-        currentObj.output = error;
+        currentObj.$parent.showDialog("error", "Error", error.response.data.message, 30000);
       });
     }
   }
@@ -5647,8 +5647,8 @@ var router = new vue_router__WEBPACK_IMPORTED_MODULE_2__["default"]({
   routes: routes,
   mode: "history"
 });
-var app2 = new vue__WEBPACK_IMPORTED_MODULE_1__["default"]({
-  el: '#notification',
+var app = new vue__WEBPACK_IMPORTED_MODULE_1__["default"]({
+  el: '#app',
   router: router,
   data: {
     notifications: []
@@ -5660,16 +5660,7 @@ var app2 = new vue__WEBPACK_IMPORTED_MODULE_1__["default"]({
       axios.get('/notifications').then(function (response) {
         _this.notifications = response.data;
       });
-    }
-  },
-  created: function created() {
-    this.fetchNotifications();
-  }
-});
-var app = new vue__WEBPACK_IMPORTED_MODULE_1__["default"]({
-  el: '#app',
-  router: router,
-  methods: {
+    },
     showDialog: function showDialog(typeDialog, title, msg, timer) {
       if (timer == 0) {
         this.$fire({
@@ -5690,6 +5681,7 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_1__["default"]({
   created: function created() {
     var _this2 = this;
 
+    this.fetchNotifications();
     Echo["private"]("App.Models.User." + document.querySelector("#loginUserId").value).notification(function (notification) {
       switch (notification.event) {
         case "login":
@@ -5711,8 +5703,9 @@ var app = new vue__WEBPACK_IMPORTED_MODULE_1__["default"]({
           break;
 
         case "notification":
-          var index = app2.notifications.length;
-          app2.notifications.push(notification.notification[0]); //app2.$set(app2.notifications, index, notification.notification)
+          var index = _this2.notifications.length;
+
+          _this2.notifications.unshift(notification.notification[0]);
 
           break;
 
