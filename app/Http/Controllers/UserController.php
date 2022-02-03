@@ -97,7 +97,9 @@ class UserController extends Controller
             $data['nwpass_decrypted'] = $user->nwpass == "" ? "" : $this->decrypt($user->nwpass);
             $data['nwuser_decrypted'] = $user->nwuser == "" ? "" : $this->decrypt($user->nwuser);
             $checkUser = $this->checkUser($data['nwuser_decrypted'], $data['nwpass_decrypted'], $user);
-            $data['tacacs_notification'] = "credentials " . $checkUser["credential_name"] . " is " . ($checkUser["valid"] == true ? "valid" : "not valid");
+            \Log::info($checkUser);
+            $userValid = isset($checkUser["credential_name"]) ?  $checkUser["credential_name"] : $data['nwuser_decrypted'];
+            $data['tacacs_notification'] = "credentials " . $userValid . " is " . ($checkUser["valid"] == true ? "valid" : "not valid");
         } else {
             $user = new User;
             $data['type'] = 'create';

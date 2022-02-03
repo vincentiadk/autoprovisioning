@@ -28,7 +28,7 @@ class Select2Controller extends Controller
 
     public function getUser()
     {
-        return Auth::user();
+        return User::findOrFail(request('id'));
     }
 
     public function getOlt()

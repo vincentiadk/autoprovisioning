@@ -30,8 +30,6 @@
         <button class="btn btn-primary" style="width: 100%" >Login</button>
         <div class="sso">
           <router-link class="page" to="/register" style="text-align:center">Don't have an account? Register here.</router-link>
-          <!--<a href="/register" class="page" style="text-align: center"
-            >Don't have an account? Register here.</a>-->
         </div>
       </div>
     </form>

@@ -67,6 +67,5 @@
             </div>
         </div>
     </div>
-    <div id="app">
-    </div>
+
     <!--@loginevent="checkLogin" -->

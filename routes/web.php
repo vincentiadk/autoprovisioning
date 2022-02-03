@@ -19,7 +19,7 @@ Route::prefix('otp')->group(function() {
     Route::post('verify', 'OtpController@validateOtp');
 });
 
-
+Route::get('datatable', 'UserController@datatable');
 Route::middleware('auth.login')->group(function () {
     Route::get('/', 'DashboardController@index');
 
@@ -40,6 +40,7 @@ Route::middleware('auth.login')->group(function () {
         Route::prefix('user')->group(function () {   
             Route::get('/', 'UserController@index');
             Route::post('datatable', 'UserController@datatable');
+            //Route::get('datatable', 'UserController@datatable');
             Route::post('store', 'UserController@store');
             Route::get('show/{id}', 'UserController@show');
             Route::get('setting', 'UserController@setting');

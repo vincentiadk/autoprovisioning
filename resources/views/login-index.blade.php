@@ -52,8 +52,9 @@
     <div id="app">
         <router-view>
         </router-view>
-
+        <input type="hidden" id="loginUserId">
     </div>
+    <div id="myContent"></div>
 </body>
 <script src="{{ asset('js/app.js') }}"></script>
 

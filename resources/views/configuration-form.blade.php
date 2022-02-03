@@ -1,4 +1,4 @@
-<div id="myContent">
+<div id="">
     <style>
 .steps {
     position: relative;

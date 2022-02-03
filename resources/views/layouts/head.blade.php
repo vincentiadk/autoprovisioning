@@ -47,10 +47,11 @@
 </head>
 
 <script>
-$('a').on('click', function() {
-    event.prefentDefault();
-})
-$(document).pjax('.page', '#myContent');
+//*$('a').on('click', function() {
+   // event.prefentDefault();
+//})
+//$(document).pjax('.page', '#myContent');
+window.vm = {}
 
 function getSearchParams(k) {
     var p = {};
@@ -1320,6 +1321,7 @@ function checkInterface(name) {
             }
         });
     }
+
     $('#vlan_' + name + '_lbl').show();
     $('#port_' + name + '_lbl').show();
     $('#qos_' + name + '_lbl').show();

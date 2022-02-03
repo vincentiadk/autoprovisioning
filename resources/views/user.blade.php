@@ -24,7 +24,7 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <button class="btn btn-warning" onclick="refreshDatatable()"> <i class="fas fa-sync"></i> Refresh </button>
+                            <!--<button class="btn btn-warning" onclick="refreshDatatable('DatatableUser')"> <i class="fas fa-sync"></i> Refresh </button>-->
                                 <a  class="btn btn-primary page" href="{{ url('panel/user/show/0') }}"> <i class="fas fa-plus-circle"></i> Tambah User </a>
                             </div>
                             <div class="card-body">
@@ -32,20 +32,7 @@
                                     <ul id="validasi_content"></ul>
                                 </div>
                                 <div class="table-responsive">
-                                    <table class="table table-striped table-bordered first" id="datatable_serverside"
-                                        style="width:100%">
-                                        <thead class="text-center">
-                                            <tr>
-                                                <th>No</th>
-                                                <th>Nama</th>
-                                                <th>No Telp</th>
-                                                <th>Email</th>
-                                                <th>LDAP</th>
-                                                <th>NIK</th>
-                                                <th>Aksi</th>
-                                            </tr>
-                                        </thead>
-                                    </table>
+                                    <datatable-user></datatable-user>
                                 </div>
                             </div>
                         </div>
@@ -79,173 +66,5 @@
 </div>
 
 
-<script>
 
-var oTable = $('#datatable_serverside').DataTable({
-    processing: true,
-    serverSide: true,
-    destroy: true,
-    scrollX: true,
-    order: [
-        [0, 'desc']
-    ],
-    iDisplayInLength: 10,
-    ajax: {
-        url: '{{ url("panel/user/datatable") }}',
-        data: {},
-        headers: {
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        },
-        type: 'POST',
-    },
-    columns: [{
-            searchable: false,
-            orderable: false,
-            className: 'align-middle text-center'
-        },
-        {
-            searchable: false,
-            orderable: false,
-            className: 'align-middle text-center'
-        },
-        {
-            searchable: false,
-            orderable: false,
-            className: 'align-middle text-center'
-        },
-        {
-            searchable: false,
-            orderable: false,
-            className: 'align-middle text-center'
-        },
-        {
-            searchable: false,
-            orderable: false,
-            className: 'align-middle text-center'
-        },
-        {
-            searchable: false,
-            orderable: false,
-            className: 'align-middle text-center'
-        },
-        {
-            searchable: false,
-            orderable: false,
-            className: 'align-middle text-center'
-        }
-    ]
-});
-
-function refreshDatatable(){
-    oTable.ajax.reload();
-}
-function disableUser(id) {
-    getUser(id, 0);
-    $('#modal_confirmation').modal('show');
-}
-
-function enableUser(id) {
-    getUser(id, 1);
-    $('#modal_confirmation').modal('show');
-}
-
-function getUser(id, type) {
-    $.ajax({
-        url: '{{ url("panel/select2/user") }}',
-        type: 'POST',
-        dataType: 'JSON',
-        data: {
-            id: id
-        },
-        headers: {
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        },
-        beforeSend: function() {
-            loadingOpen('.content-wrapper');
-            $('#validasi_element').hide();
-            $('#validasi_content').html('');
-        },
-        success: function(response) {
-            loadingClose('.content-wrapper');
-            if (type == 1) {
-                $('#spanLock').html('<b>mengaktifkan</b> User : ' + response.name);
-                $('#pLock').html(
-                    '*) Setelah diaktifakan, user dapat login ke dalam sistem.'
-                );
-                $('#btn_save_lock').attr('onclick', 'doDisableEnable(' + id + ', 1)');
-            } else {
-                $('#spanLock').html('<b>menonaktifkan</b> User : ' + response.name);
-                $('#pLock').html(
-                    '*) Setelah dinonaktifkan, user <b>tidak dapat</b> login ke dalam sistem.');
-                $('#btn_save_lock').attr('onclick', 'doDisableEnable(' + id + ', 0)');
-            }
-        },
-        error: function() {
-            loadingClose('.content-wrapper');
-            cancel();
-            Toast.fire({
-                icon: 'error',
-                title: 'Server Error!'
-            });
-        }
-    })
-}
-
-function cancel() {
-    $('#modal_confirmation').modal('hide');
-}
-
-function doDisableEnable(id, type) {
-    if (type == 1) {
-        var ajax_url = '{{ url("panel/user/activation") }}';
-    } else {
-        var ajax_url = '{{ url("panel/user/deactive") }}';
-    }
-    $.ajax({
-        url: ajax_url,
-        type: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        },
-        data: {
-            id: id,
-        },
-        dataType: 'JSON',
-        beforeSend: function() {
-            loadingOpen('.modal-content');
-            $('#validasi_element').hide();
-            $('#validasi_content').html('');
-        },
-        success: function(response) {
-            loadingClose('.modal-content');
-            if (response.status == 200) {
-                oTable.ajax.reload(null, false);
-                Toast.fire({
-                    icon: 'success',
-                    title: response.message
-                });
-            } else if (response.status == 422) {
-                Toast.fire({
-                    icon: 'info',
-                    title: 'Validasi'
-                });
-            } else {
-                Toast.fire({
-                    icon: 'warning',
-                    title: response.message
-                });
-            }
-            $('#modal_confirmation').modal('hide');
-        },
-        error: function() {
-            loadingClose('.modal-content');
-            cancel();
-            Toast.fire({
-                icon: 'error',
-                title: 'Server Error!'
-            });
-        }
-    })
-}
-</script>
 </div>

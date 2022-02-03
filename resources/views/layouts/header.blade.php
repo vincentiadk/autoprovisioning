@@ -1,10 +1,10 @@
 
 
-<body>
+<body >
     <!-- ============================================================== -->
     <!-- main wrapper -->
     <!-- ============================================================== -->
-    <div class="dashboard-main-wrapper">
+    <div class="dashboard-main-wrapper" >
          <!-- ============================================================== -->
         <!-- navbar -->
         <!-- ============================================================== -->
@@ -26,7 +26,7 @@
                             <ul class="dropdown-menu dropdown-menu-right notification-dropdown">
                                 <li>
                                     <div class="notification-title"> Notification</div>
-                                    <div class="notification-list" id="notification">
+                                    <div class="notification-list" id="app">
                                         <user-notification :notifications="notifications"></user-notification>
                                         <!--<div class="list-group">
                                             <a href="#" class="list-group-item list-group-item-action active">

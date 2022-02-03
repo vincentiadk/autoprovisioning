@@ -165,7 +165,7 @@ export default {
           .then(function (response) {
             if (response.data.status == 200) {
               currentObj.resetInput();
-              currentObj.$parent.$frie(
+              currentObj.$parent.$fire(
                 "success",
                 "Register Success",
                 "Please check your email for activation",

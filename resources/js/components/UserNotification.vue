@@ -25,6 +25,7 @@ export default {
 
   created() {
     console.log('User notification called');
+    this.$parent.fetchNotifications();
   }
 };
 </script>

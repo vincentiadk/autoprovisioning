@@ -34,11 +34,9 @@ files.keys().map(key => Vue.component(key.split('/').pop().split('.')[0], files(
 const routes = [
     {
         path: '/login', component: require('./components/LoginForm.vue').default
-
     },
     {
         path: '/register', component: require('./components/RegisterForm.vue').default
-
     },
 ]
 
@@ -46,8 +44,8 @@ const router = new VueRouter({
     routes,
     mode: "history"
 })
-const app2 = new Vue({
-    el: '#notification',
+const app = new Vue({
+    el: '#app',
     router,
     data: {
         notifications: [],
@@ -58,15 +56,6 @@ const app2 = new Vue({
                 this.notifications = response.data;
             });
         },
-    },
-    created() {
-        this.fetchNotifications();
-    }
-})
-const app = new Vue({
-    el: '#app',
-    router,
-    methods: {
         showDialog(typeDialog, title, msg, timer) {
             if (timer == 0) {
                 this.$fire({
@@ -106,9 +95,8 @@ const app = new Vue({
                             });
                         break;
                     case "notification":
-                        let index = app2.notifications.length;
-                        app2.notifications.push(notification.notification[0]);
-                        //app2.$set(app2.notifications, index, notification.notification)
+                        let index = this.notifications.length;
+                        this.notifications.unshift(notification.notification[0]);
                         break;
                     default:
                         this.showDialog(
@@ -120,4 +108,8 @@ const app = new Vue({
                 }
             })
     }
-});
+})
+
+const app2 = new Vue({
+    el: '#myContent',
+})
