@@ -33,10 +33,10 @@
         />
         <div id="formConfig" class="card">
           <div v-if="step === 1">
-            <order-form></order-form>
+            <order-form ref="orderform"></order-form>
           </div>
           <div v-if="step === 2">
-            <metro-form></metro-form>
+            <metro-form ref="metroform"></metro-form>
           </div>
           <div v-if="step === 3">
             <div v-if="gponPage === 0">

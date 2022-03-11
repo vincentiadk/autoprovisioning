@@ -994,13 +994,15 @@ window.checkQosBefore = function(id, lbl, node) {
 
 window.checkBackhaul1Access = function() {
     if ($("#node_access_name").val() == $('#node_backhaul_1_name').val()) {
-        if ($('#node_manufacture').val() == 'HUAWEI') {
+        var port = window.app3.$children[4].$children[0].metro.port_backhaul_1;
+        var port2 = window.app3.$children[4].$children[0].metro.port_access;
+        /*if ($('#node_manufacture').val() == 'HUAWEI') {
             port2 = $("#select_port_backhaul_1").val();
             port = $("#select_port_access").val();
         } else {
             port2 = $("#input_port_backhaul_1").val();
             port = $("#input_port_access").val();
-        }
+        }*/
         if (port2 == port) {
             return false;
         }
@@ -1010,13 +1012,15 @@ window.checkBackhaul1Access = function() {
 
 window.checkBackhaul1Backhaul2 = function() {
     if ($("#node_backhaul_1_name").val() == $('#node_backhaul_2_name').val()) {
-        if ($('#node_manufacture').val() == 'HUAWEI') {
+        var port = window.app3.$children[4].$children[0].metro.port_backhaul_1;
+        var port2 = window.app3.$children[4].$children[0].metro.port_backhaul_2;
+        /*if ($('#node_manufacture').val() == 'HUAWEI') {
             port = $("#select_port_backhaul_1").val();
             port2 = $("#select_port_backhaul_2").val();
         } else {
             port = $("#input_port_backhaul_1").val();
             port2 = $("#input_port_backhaul_2").val();
-        }
+        }*/
         if (port2 == port) {
             return false;
         }
@@ -1026,13 +1030,15 @@ window.checkBackhaul1Backhaul2 = function() {
 
 window.checkBackhaul2Access = function() {
     if ($("#node_backhaul_2_name").val() == $('#node_access_name').val()) {
-        if ($('#node_manufacture').val() == 'HUAWEI') {
+        var port = window.app3.$children[4].$children[0].metro.port_backhaul_2;
+        var port2 = window.app3.$children[4].$children[0].metro.port_access;
+        /*if ($('#node_manufacture').val() == 'HUAWEI') {
             port = $("#select_port_backhaul_2").val();
             port2 = $("#select_port_access").val();
         } else {
             port = $("#input_port_backhaul_2").val();
             port2 = $("#input_port_access").val();
-        }
+        }*/
         if (port2 == port) {
             return false;
         }
@@ -1097,8 +1103,6 @@ window.checkPort = function(name, id) {
     if (name.includes("backhaul")) {
         backhaul = "true";
     }
-
-
     $.ajax({
         url: "/panel/metro/check-port" + '?port=' + port +
             '&name=' + $("#node_" + name + '_name').val() + '&backhaul=' + backhaul,
@@ -1115,13 +1119,26 @@ window.checkPort = function(name, id) {
                 } else {
                     $('#port_' + name + '_lbl_top').html('Port ' + name.replace("_", " "));
                 }
-
+                if(name.includes("access")){
+                  window.app3.$children[4].$children[0].metro.port_access = response.parent;
+                } else if(name.includes("backhaul_1")){
+                  window.app3.$children[4].$children[0].metro.port_backhaul_1 = response.parent;
+                } if(name.includes("backhaul_2")){
+                  window.app3.$children[4].$children[0].metro.port_backhaul_2 = response.parent;
+                }
                 $("#select_port_" + name).val(response.parent);
                 $("#input_port_" + name).val(response.parent);
-                $("#hidden_port_" + name).val(response.parent);
+
             } else {
                 $('#port_' + name + '_lbl_top').html('Port ' + name.replace("_", " "));
-                $("#hidden_port_" + name).val(port);
+                if(name.includes("access")){
+                  window.app3.$children[4].$children[0].metro.port_access = port;
+                } else if(name.includes("backhaul_1")){
+                  window.app3.$children[4].$children[0].metro.port_backhaul_1 = port;
+                } if(name.includes("backhaul_2")){
+                  window.app3.$children[4].$children[0].metro.port_backhaul_2 = port;
+                }
+
             }
         },
         complete: function() {
@@ -1136,7 +1153,13 @@ window.checkBackhaul = function(sec, id) {
     var port = "";
     var vlan = $('#vlan_backhaul_' + sec).val();
     var vcid = $('#vcid').val();
-    var node = $('#node_backhaul_' + sec + '_name').val();
+    if(sec== 1) {
+      var node = window.app3.$children[4].$children[0].metro.node_backhaul_1_name;
+    } else {
+      var node = window.app3.$children[4].$children[0].metro.node_backhaul_2_name;
+    }
+
+    //var node = $('#node_backhaul_' + sec + '_name').val();
     var description = $('#description_backhaul_' + sec).val();
     if (manufacture == "HUAWEI") {
         port = $('#select_port_backhaul_' + sec).val();
@@ -1258,7 +1281,6 @@ window.checkBackhaul = function(sec, id) {
                         "New description/service backhaul " + sec + " OK");
                 }
             }
-            // $('#div_'+id).parent().remove();
         },
         complete: function(response) {
             if (response.responseJSON.vcid != vcid && vcid != "" && response.responseJSON.statusVlan ==
@@ -1283,7 +1305,7 @@ window.checkAccess = function() {
     var port = "";
     var vlan = $('#vlan_access').val();
     var vcid = $('#vcid').val();
-    var node = $('#node_access_name').val();
+    var node = window.app3.$children[4].$children[0].metro.node_access_name;
     if (manufacture == "HUAWEI") {
         port = $('#select_port_access').val();
     } else {
@@ -1336,11 +1358,15 @@ window.checkAccess = function() {
                 } else if (response.statusVcid == 200 && vcid != "" && vcid.length > 3) {
                     var msgVcid = vcidLbl + " access already configured with " + response.interfaces.total +
                         " interfaces";
+                        setAvailable('vcid_access_lbl', 'vcid', msgVcid);
                     if (response.statusPort == 200) {
                         msgVcid += ", Port " + port + " and VLAN " + vlan + " not available";
+                        setUnavailable('vcid_access_lbl', 'vcid', msgVcid);
                     } else {
                         msgVcid += ", Port " + port + " and VLAN " + vlan + " available";
+                        setAvailable('vcid_access_lbl', 'vcid', msgVcid);
                     }
+                    
                 }
 
                 if (response.statusPort == 200 && port != "") {
@@ -1404,6 +1430,13 @@ window.checkAccess = function() {
 }
 window.checkNode = function(id, lbl, textbox, oldScheduler = '') {
     var name = id.replace('_name', '').replace('node_', '');
+    if(id.includes("access") ){
+      window.app3.$children[4].$children[0].metro.node_access_name = $('#' + id).val();
+    } else if(id.includes("backhaul_1") ){
+      window.app3.$children[4].$children[0].metro.node_backhaul_1_name = $('#' + id).val();
+    } else if(id.includes("backhaul_2") ){
+      window.app3.$children[4].$children[0].metro.node_backhaul_2_name = $('#' + id).val();
+    }
     $.ajax({
         url: "/panel/metro/check-node" + '?name=' + $('#' + id).val(),
         contentType: 'application/json',
@@ -1414,6 +1447,7 @@ window.checkNode = function(id, lbl, textbox, oldScheduler = '') {
         },
         success: function(response) {
             if (response.status == 200) {
+                
                 if ($('#node_manufacture').val() == "") {
                     $('#node_manufacture').val(response.manufacture);
                 }

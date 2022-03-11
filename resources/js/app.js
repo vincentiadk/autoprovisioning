@@ -45,7 +45,7 @@ const routes = [
         path: '/panel/configuration', component: require('./components/ConfigurationView.vue').default
     },
     {
-        path: '/panel/configuration/form', component: require('./components/ConfigurationForm.vue').default
+        path: '/panel/configuration/form', component: require('./components/ConfigurationForm.vue').default, ref: "configuration"
     },
     {
         path: '/panel/metro', component: require('./components/MetroView.vue').default
@@ -65,7 +65,7 @@ const app2 = new Vue({
         notifications: [],
     },
 })
-const app3 = new Vue({
+window.app3 = new Vue({
     el: '#myContent',
     router,
 })
