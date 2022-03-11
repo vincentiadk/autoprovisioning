@@ -6,7 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\ConfigurationStatus;
 use App\Models\Order;
-use App\Models\User;
+use App\Models\OltSite;
+use Illuminate\Support\Facades\Auth;
 
 class OrderController extends Controller
 {
@@ -25,15 +26,23 @@ class OrderController extends Controller
     }
     public function store()
     {
-        $user = User::findOrFail(session('id'));
+        $user = Auth::user();
         $config_id = request('config_id');
-
+        $olt_site_id = request('olt_site_id');
         $validator = Validator::make(request()->all(), [
             'nama_costumer' => 'required',
             'order_number' => 'required',
+            'site_name' => 'required',
+            'site_id' => $olt_site_id != 0 ? 'required|unique:olt_sites,site_id,' . $olt_site_id . '|regex:/[a-zA-Z]{3}[0-9]{3}/u|'  :  'required|unique:olt_sites,site_id|regex:/[a-zA-Z]{3}[0-9]{3}/u|',
+            'regional' => 'required',
+            'work_zone' => 'required'
         ], [
             "nama_costumer.required" => "Nama Costumer wajib diisi!",
             "order_number.required" => "Nomor Order wajib diisi!",
+            "site_name.required" => "Site Name wajibi diisi!",
+            "site_id.required" => "Site ID wajib diisi!",
+            "site_id.unique" => "Site ID sudah ada!",
+            "site_id.regex" => "Site ID salah format!"
         ]);
         if ($validator->fails()) {
             $response = [
@@ -41,47 +50,70 @@ class OrderController extends Controller
                 'error' => $validator->errors(),
             ];
         } else {
+            $configuration = ConfigurationStatus::find($config_id);
+            $order = $configuration ? $configuration->order : new Order;
+            $olt = $configuration ? $configuration->oltSite : new OltSite;
             try {
-                $order_id = request('order_id');
-                $obj[] = [
-                    'config_id' => $config_id
-                ];
-                if($order_id > 0 ) {
-                    $data = Order::find(request('order_id'))->update([
+                if($order->id != "") {
+                    $order->update([
                         'nama_costumer' => request('nama_costumer'),
                         'order_number' => request('order_number'),
+                        'work_zone' => request('work_zone'),
+                        'regional' =>request('regional')
                     ]);
-                    $response = [
-                        'status' => 200,
-                        'message' => 'Order berhasil disimpan',
-                        'object' => $obj,
-                    ];
+                    $message = 'Order berhasil disimpan';
+
                 } else {
-                    $data = Order::create([
+                    $order = Order::create([
                         'nama_costumer' => request('nama_costumer'),
                         'order_number' => request('order_number'),
+                        'work_zone' => request('work_zone'),
+                        'regional' =>request('regional')
                     ]);
-                    $order_id = $data->id;
-                    $response = [
-                        'status' => 200,
-                        'message' => 'Order berhasil di buat',
-                        'object' => $obj,
-                    ];
+                    $message = 'Order berhasil dibuat';
+                   
                 }
-                
-                if ($config_id == 0) {
+                if($olt->id != "") {
+                    $olt->update([
+                        'user_id' => $user->id,
+                        'site_id' => request('site_id'),
+                        'site_name'=> request('site_name')
+                    ]);
+
+                } else {
+                    $olt = OltSite::create([
+                        'user_id' => $user->id,
+                        'site_id' => request('site_id'),
+                        'site_name'=> request('site_name')
+                    ]);
+                }
+                $olt_site_id = $olt->id;
+               
+                if ($config_id == 0 || $config_id == "") {
                     $config_id = ConfigurationStatus::create([
                         'created_by' => session('id'),
-                        'order_id' => $order_id
+                        'order_id' => $order->id,
+                        'olt_site_id' => $olt->id
                     ])->id;
+                    
                 }
-                //$this->storeLog($user, $olt, 'Create Order');
+                \Log::info($olt);
+                $response = [
+                    'status' => 200,
+                    'message' => 'Order berhasil di buat',
+                    'oltSite' => $olt,
+                    'order' => $order,
+                    'config_id' => $config_id
+                ];
                 
             } catch (\Exception $e) {
                 //DB::rollback();
                $response = [
                     'status' => 500,
                     'message' => $e->getMessage(),
+                    'order' => $order,
+                    'oltSite' => $olt,
+                    'config_id' => $config_id
                 ];
 
             } 

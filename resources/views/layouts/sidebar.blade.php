@@ -15,22 +15,24 @@
                         <a class="nav-link page" href="#"><i class="fa fa-fw fa-user-circle"></i>Dashboard</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link page"  href="{{ url('panel/configuration') }}" ><i class="fa fa-envelope"></i>Inbox</a>
+                        <router-link class="nav-link" to="/panel/configuration"><i class="fa fa-envelope"></i>Inbox</router-link>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link page" href="{{ url('panel/configuration/form') }}"><i class="ti-harddrive"></i>Generate Configuration</a>
+                        <router-link class="nav-link page" to="/panel/configuration/form"><i class="ti-harddrive"></i>Generate Configuration</router-link>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link page" href="{{ url('panel/gpon') }}"><i class="ti-harddrive"></i>GPON</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link page" href="{{ url('panel/metro') }}"><i class="ti-signal"></i>Metro</a>
+                        <router-link class="nav-link" to="/panel/metro"><i class="ti-signal"></i>Metro</router-link>
+                   
                     </li>
                     <li class="nav-item">
+                        
                         <a class="nav-link page" href="{{ url('panel/logs') }}"><i class="fa fa-fw fa-rocket"></i>Log</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link page" href="{{ url('panel/user') }}"><i class="fa fa-users"></i>User Management</a>
+                        <router-link class="nav-link" to="/panel/user"><i class="fa fa-users"></i>User Management</router-link>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link page" href="{{ url('panel/role') }}"><i class="fa fa-users"></i>Role</a>

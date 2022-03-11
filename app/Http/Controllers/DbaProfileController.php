@@ -7,12 +7,13 @@ use App\Models\OltSite;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Auth;
 
 class DbaProfileController extends Controller
 {
     public function store()
     {
-        $user = User::findOrFail(session('id'));
+        $user = Auth::user();
         $config_id = request('config_id');
         $olt_site_id = request('olt_site_id');
 
@@ -37,7 +38,7 @@ class DbaProfileController extends Controller
             ];
         } else {
             try {
-                $metro = DbaProfile::create([
+                $dba = DbaProfile::create([
                     'user_id' => session('id'),
                     'olt_site_id' => $olt_site_id,
                     'profile_id' => request('profile_id'),
@@ -53,10 +54,12 @@ class DbaProfileController extends Controller
                     'message' => 'DBA Profile berhasil dibuat',
                     'object' => [
                         'config_id' => $config_id,
-                        'olt_site_id' => $olt_site_id
-                    ],
+                        'olt_site_id' => $olt_site_id,
+                        'dba' => $dba
+                    ]
                 ];
-                return redirect('panel/configuration/form?config_id=' . $config_id . '&aLink=aGpon');
+                return respone()->json($response);
+                //return redirect('panel/configuration/form?config_id=' . $config_id . '&aLink=aGpon');
             } catch (\Exception $e) {
                 $response = [
                     'status' => 500,

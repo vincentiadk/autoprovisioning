@@ -34,24 +34,40 @@ files.keys().map(key => Vue.component(key.split('/').pop().split('.')[0], files(
 const routes = [
     {
         path: '/login', component: require('./components/LoginForm.vue').default
-
     },
     {
         path: '/register', component: require('./components/RegisterForm.vue').default
-
+    },
+    {
+        path: '/panel/user', component: require('./components/UserView.vue').default
+    },
+    {
+        path: '/panel/configuration', component: require('./components/ConfigurationView.vue').default
+    },
+    {
+        path: '/panel/configuration/form', component: require('./components/ConfigurationForm.vue').default
+    },
+    {
+        path: '/panel/metro', component: require('./components/MetroView.vue').default
     },
 ]
-
-const router = new VueRouter({
+window.vm = {}
+const router= new VueRouter({
     routes,
     mode: "history"
 })
+
+
+
 const app2 = new Vue({
     el: '#notification',
-    router,
     data: {
         notifications: [],
     },
+})
+const app3 = new Vue({
+    el: '#myContent',
+    router,
 })
 const app = new Vue({
     el: '#app',
@@ -97,7 +113,7 @@ const app = new Vue({
                         break;
                     case "notification":
                         let index = app2.notifications.length;
-                        app2.notifications.push(notification.notification[0]);
+                        app2.notifications.unshift(notification.notification[0]);
                         //app2.$set(app2.notifications, index, notification.notification)
                         break;
                     default:

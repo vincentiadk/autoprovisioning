@@ -1,7 +1,8 @@
 @include('layouts.head')
 @include('layouts.header')
-@include('layouts.sidebar')
-<div id="myContent">
-@include($data['content'], $data)
+<div id="myContent" :title="title">
+    @include('layouts.sidebar')
+    <router-view>
+    </router-view>
 </div>
 @include('layouts.footer')

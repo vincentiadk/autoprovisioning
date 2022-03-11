@@ -181,7 +181,8 @@ trait Authorization
         ];;
         $response = $this->client->post('/network/v1/credentials/check', $header);
         $result = json_decode($response->getBody()->getContents(), true);
-        //\Log::info($result);
+        \Log::info($result);
         return $result;
     }
+    
 }

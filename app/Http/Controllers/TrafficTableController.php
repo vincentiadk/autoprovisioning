@@ -18,10 +18,11 @@ class TrafficTableController extends Controller
             'oltSite'  => $oltSite,
             'config_id' => $config_id
         ];
-        if( request()->header('X-PJAX') ) {
+        return response()->json($data);
+        /*if( request()->header('X-PJAX') ) {
             return view('traffic-table', ['data' => $data]);
         } else {
            return redirect('panel/configuration/form?config_id=' . $config_id . '&aLink=aGpon&pagegpon=traffic');
-        }
+        }*/
     }
 }

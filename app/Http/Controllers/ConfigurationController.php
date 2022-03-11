@@ -11,6 +11,16 @@ use Illuminate\Http\Request;
 
 class ConfigurationController extends Controller
 {
+    public function getTitle()
+    {
+        $data = [
+            'title' => 'Inbox',
+            'content' => 'configuration',
+        ];
+       
+        return response()->json($data);
+      
+    }
 
     public function index()
     {
@@ -90,12 +100,14 @@ class ConfigurationController extends Controller
             'oltSite' => $oltSite,
             'metro' => $metro,
         ];
-        return view('configuration-order', ['data' => $data]);
+        return $data;
+        //return view('configuration-order', ['data' => $data]);
     }
 
     public function configMetro()
     {
         if (request('config_id') > 0) {
+            \Log::info(request('config_id') );
             $config_metro = ConfigurationStatus::findOrFail(request('config_id'))->metroList;
             $metro = $config_metro ? $config_metro : new MetroList;
         } else {
@@ -103,10 +115,11 @@ class ConfigurationController extends Controller
         }
         $data = [
             'title' => 'Konfigurasi Metro',
-            'content' => 'configuratiom-metro',
+            'content' => 'configuration-metro',
             'metro' => $metro,
         ];
-        return view('configuration-metro', ['data' => $data]);
+        return $data;
+        //return view('configuration-metro', ['data' => $data]);
     }
 
     public function configGpon()
@@ -272,7 +285,7 @@ class ConfigurationController extends Controller
                     $gpon,
                     $ont,
                     $aksi .
-                    '<a href="' . url('panel/configuration/form?config_id=' . $val->id) . '" class="btn btn-success btn-xs page"><i class="far fa-edit"></i> Ubah</a>
+                    '<a href="' . url('panel/configuration/form?config_id=' . $val->id) . '" class="btn btn-success btn-xs page router-link-exact-active router-link-active"><i class="far fa-edit"></i> Ubah</a>
                     <button onclick="detailConfiguration(' . $val->id . ')" class="btn btn-primary btn-xs"> <i class="fas fa-eye"></i> Detail</button>',
                 ];
                 $nomor++;

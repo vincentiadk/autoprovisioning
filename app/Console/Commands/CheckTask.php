@@ -17,14 +17,15 @@ class CheckTask extends Command
     private $client;
     public $token;
     public $header;
+    
 
     public function __construct()
     {
         parent::__construct();
-        $this->url = config('metro.url');
+    /*    $this->url = config('metro.url');
         $this->client = new Client(["base_uri" => $this->url, "http_errors" => false, 'verify' => false]);
         $this->token = $this->getToken(null, User::find(session('id')));
-        $this->header = $this->getHeader($this->token);
+        $this->header = $this->getHeader($this->token); */
     }
 
     public function handle()

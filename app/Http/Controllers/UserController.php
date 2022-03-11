@@ -15,18 +15,19 @@ class UserController extends Controller
 {
     use Authorization;
 
-    public function index()
+    public function getTitle()
     {
         $data = [
             'title' => 'User Management',
             'content' => 'user',
         ];
-        if (request()->header('X-PJAX')) {
-            return view('user', ['data' => $data]);
-        } else {
-            return view('layouts.index', ['data' => $data]);
-        }
-        return view('user', ['data' => $data]);
+       // if (request()->header('X-PJAX')) {
+           // return view('user', ['data' => $data]);
+        //} else {
+            return response()->json($data);
+       // }
+       // return view('user', ['data' => $data]);
+        //return view('login');
     }
 
     public function datatable(Request $request)
@@ -97,7 +98,8 @@ class UserController extends Controller
             $data['nwpass_decrypted'] = $user->nwpass == "" ? "" : $this->decrypt($user->nwpass);
             $data['nwuser_decrypted'] = $user->nwuser == "" ? "" : $this->decrypt($user->nwuser);
             $checkUser = $this->checkUser($data['nwuser_decrypted'], $data['nwpass_decrypted'], $user);
-            $data['tacacs_notification'] = "credentials " . $checkUser["credential_name"] . " is " . ($checkUser["valid"] == true ? "valid" : "not valid");
+            $credential_name = isset($checkUser["credential_name"]) ? $checkUser["credential_name"] : $data['nwuser_decrypted'];
+            $data['tacacs_notification'] = "credentials " . $credential_name . " is " . ($checkUser["valid"] == true ? "valid" : "not valid");
         } else {
             $user = new User;
             $data['type'] = 'create';
@@ -125,11 +127,11 @@ class UserController extends Controller
         $data['tacacs_notification'] = "credentials " . $checkUser["credential_name"] . " is " . ($checkUser["valid"] == true ? "valid" : "not valid");
 
         $data['user'] = $user;
-        if (request()->header('X-PJAX')) {
-            return view('user-form', ['data' => $data]);
-        } else {
+        //if (request()->header('X-PJAX')) {
+        //    return view('user-form', ['data' => $data]);
+        //} else {
             return view('layouts.index', ['data' => $data]);
-        }
+        //}
     }
 
     public function setting()

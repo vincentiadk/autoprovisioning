@@ -125,6 +125,9 @@ class MetroController extends Controller
                         'status' => 200,
                         'message' => 'Metro berhasil dibuat',
                         'object' => $obj,  
+                        'data' => [
+                            'metro' => $metro
+                            ]
                     ];
                     $metro_list_id = $metro->id;
 
@@ -172,6 +175,9 @@ class MetroController extends Controller
                         'status' => 200,
                         'message' => 'Metro berhasil diubah dan menjadi task baru : ' . $task_id,
                         'object' => $obj,
+                        'data' => [
+                            'metro' => $metro
+                            ]
                     ];
                 }
                 if ($config_id == 0) {
@@ -690,7 +696,14 @@ class MetroController extends Controller
             return view('layouts.index', ['data' => $data]);
         }
     }
-
+    public function getTitle()
+    {
+        $data = [
+            'title' => 'Metro',
+            'content' => 'metro',
+        ];
+        return response()->json($data);
+    }
     public function datatable(Request $request)
     {
         $start = $request->input('start');

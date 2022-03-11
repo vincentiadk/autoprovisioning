@@ -13,7 +13,10 @@ class Order extends Model
         'nama_costumer',
         'order_number',
         'done',
-        'done_date'
+        'done_date',
+        'regional',
+        'work_zone'
     ];
+
         
 }

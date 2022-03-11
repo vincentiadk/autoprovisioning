@@ -14,10 +14,10 @@
           />
         </div>
         <div class="notification-list-user-block">
-          <span class="notification-list-user-name">{{
-            notification.user.name
-          }}</span
-          >{{ notification.message }}
+          <span class="notification-list-user-name">
+            {{ notification.user.name }}
+          </span>
+          {{ notification.message }}
           <div class="notification-date">{{ notification.created_at }}</div>
         </div>
       </div>
@@ -31,8 +31,9 @@ export default {
 
   methods: {
     fetchNotifications() {
+      let currentObj = this;
       axios.get("/notifications").then((response) => {
-        app2.notifications = response.data;
+        currentObj.$parent.notifications = response.data;
       });
     },
   },

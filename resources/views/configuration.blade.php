@@ -1,4 +1,4 @@
-<div id="myContent">
+<div id="">
 <!-- Content Wrapper. Contains page content -->
 <div class="container-fluid dashboard-content">
     <!-- Main content -->
@@ -31,16 +31,15 @@
                                 <div class="alert alert-danger" id="validasi_element" style="display:none;">
                                     <ul id="validasi_content"></ul>
                                 </div>
-                                <div class="table-responsive">
+                                <datatable-configuration></datatable-configuration>
+                                <!--<div class="table-responsive">
                                     <table class="table table-striped table-bordered first" id="datatable_serverside"
                                         style="width:100%">
                                         <thead class="text-center">
                                             <tr>
                                                 <th>No</th>
                                                 <th>Nomor Order</th>
-                                                <!--<th>Nama</th>
-                                                <th>Site Name</th>
-                                                <th>BW</th>-->
+                                               
                                                 <th>Metro</th>
                                                 <th>GPON</th>
                                                 <th>ONT</th>
@@ -48,7 +47,7 @@
                                             </tr>
                                         </thead>
                                     </table>
-                                </div>
+                                </div>-->
                             </div>
                         </div>
                     </div>

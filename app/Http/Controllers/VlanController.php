@@ -10,7 +10,7 @@ class VlanController extends Controller
     public function show($id)
     {
         $oltSite = OltSite::find($id);
-        $dba = $oltSite->dbaProfiles;
+        $vlan = $oltSite->vlan;
         $config_id = $oltSite->configurationStatus->id;
         $data = [
             'title' => 'VLAN',
@@ -18,10 +18,11 @@ class VlanController extends Controller
             'oltSite' => $oltSite,
             'config_id' => $config_id,
         ];
-        if (request()->header('X-PJAX')) {
-            return view('vlan', ['data' => $data]);
-        } else {
-            return redirect('panel/configuration/form?config_id=' . $config_id . '&aLink=aGpon&pagegpon=vlan');
-        }
+        return response()->json($data);
+        //if (request()->header('X-PJAX')) {
+        //    return view('vlan', ['data' => $data]);
+        //} else {
+        //    return redirect('panel/configuration/form?config_id=' . $config_id . '&aLink=aGpon&pagegpon=vlan');
+        //}
     }
 }

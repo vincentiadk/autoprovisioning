@@ -19,6 +19,8 @@ Route::prefix('otp')->group(function() {
     Route::post('verify', 'OtpController@validateOtp');
 });
 
+Route::get('notifications', 'NotificationController@getNotification');
+
 
 Route::middleware('auth.login')->group(function () {
     Route::get('/', 'DashboardController@index');
@@ -38,7 +40,7 @@ Route::middleware('auth.login')->group(function () {
         });
 
         Route::prefix('user')->group(function () {   
-            Route::get('/', 'UserController@index');
+            Route::get('get-title', 'UserController@getTitle');
             Route::post('datatable', 'UserController@datatable');
             Route::post('store', 'UserController@store');
             Route::get('show/{id}', 'UserController@show');
@@ -53,7 +55,7 @@ Route::middleware('auth.login')->group(function () {
         });
 
         Route::prefix('configuration')->group(function () {   
-            Route::get('/', 'ConfigurationController@index');
+            Route::get('get-title', 'ConfigurationController@getTitle');
             Route::get('form', 'ConfigurationController@form');
             Route::get('config-order', 'ConfigurationController@configOrder');
             Route::get('config-metro', 'ConfigurationController@configMetro');
@@ -80,7 +82,7 @@ Route::middleware('auth.login')->group(function () {
         });
 
         Route::prefix('metro')->group(function () {   
-            Route::get('/', 'MetroController@index');
+            Route::get('get-title', 'MetroController@getTitle');
             Route::get('/check-node', 'MetroController@checkNode');
             Route::get('/check-interface', 'MetroController@checkInterface');
             Route::get('/check-port', 'MetroController@checkPort');
@@ -129,8 +131,9 @@ Route::middleware('auth.login')->group(function () {
             Route::post('datatable', 'OrderController@datatable');
             Route::post('store', 'OrderController@store');
         });
-
-        
+        Route::get('{any}', function () { 
+            return view('layouts.index'); 
+        })->where('any', '.*'); 
     });
 });
 Route::get('test', 'TestController@index');

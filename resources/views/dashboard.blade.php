@@ -1,2 +1,5 @@
-<div class="card col-md-12">
+
+<div id="myContent">
+        <router-view>
+        </router-view>
 </div>

@@ -21,14 +21,9 @@ class OltSite extends Model
         'site_id',
         'site_name',
         'bw_order_total',
-        'bw_order_oam',
-        'bw_order_2g',
-        'bw_order_3g',
-        'bw_order_4g',
         'vlan',
-        'vlan_2g',
-        'vlan_3g',
-        'vlan_4g',
+        'ip_ont',
+        'sn_ont',
         'description',
         'updated_by',
         'mac_add_node',
@@ -48,6 +43,11 @@ class OltSite extends Model
     public function dbaProfiles()
     {
         return $this->hasMany(DbaProfile::class);
+    }
+
+    public function vlan()
+    {
+        return $this->hasMany(Vlan::class);
     }
 
     public function ontLineProfiles()
